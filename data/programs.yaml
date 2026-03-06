@@ -1,0 +1,113 @@
+---
+programs:
+  - id: w3
+    name: W3 Hardware Wallet
+    phase: DVT
+    one_pager_url: "[NEED UPDATE]"
+    last_updated: "2026-03-06"
+    last_milestone:
+      name: DVT BRR
+      date: "2026-02-23"
+    next_gate:
+      name: Ok2Vegas
+      date: "2026-03-16"
+      exit_criteria: "Drop test GO, NFC spec signed off, ATE dry run clean"
+    milestones:
+      - name: DVT FAI
+        date: "2026-03-09"
+      - name: Ok2Vegas
+        date: "2026-03-16"
+      - name: Ok2Ship
+        date: "2026-04-08"
+    decisions:
+      - name: Housing down-select (heavy vs light)
+        owner: Nick George
+        deadline: "2026-03-14"
+      - name: NFC good-enough spec sign-off
+        owner: Daniel Wilson
+        deadline: "2026-03-07"
+    risks:
+      - name: Zero-iteration DVT to PVT
+        owner: Justin Heckman
+      - name: SW Day-1 readiness
+        owner: Ford Peprah
+
+  - id: r2-b4
+    name: R2-B4 Mining
+    phase: EVT
+    one_pager_url: "[NEED UPDATE]"
+    last_updated: "2026-03-06"
+    last_milestone:
+      name: "[NEED UPDATE]"
+      date: "[NEED UPDATE]"
+    next_gate:
+      name: "[NEED UPDATE]"
+      date: "[NEED UPDATE]"
+      exit_criteria: "[NEED UPDATE]"
+    milestones: []
+    decisions: []
+    risks: []
+
+  - id: tags
+    name: $Tags
+    phase: In Design
+    one_pager_url: "[NEED UPDATE]"
+    last_updated: "2026-03-06"
+    last_milestone:
+      name: "[NEED UPDATE]"
+      date: "[NEED UPDATE]"
+    next_gate:
+      name: "[NEED UPDATE]"
+      date: "[NEED UPDATE]"
+      exit_criteria: "[NEED UPDATE]"
+    milestones: []
+    decisions: []
+    risks: []
+
+  - id: ct1
+    name: CT1
+    phase: In Design
+    one_pager_url: "[NEED UPDATE]"
+    last_updated: "2026-03-06"
+    last_milestone:
+      name: "[NEED UPDATE]"
+      date: "[NEED UPDATE]"
+    next_gate:
+      name: "[NEED UPDATE]"
+      date: "[NEED UPDATE]"
+      exit_criteria: "[NEED UPDATE]"
+    milestones: []
+    decisions: []
+    risks: []
+
+  - id: k1
+    name: K1
+    phase: EVT
+    one_pager_url: "[NEED UPDATE]"
+    last_updated: "2026-03-06"
+    last_milestone:
+      name: "[NEED UPDATE]"
+      date: "[NEED UPDATE]"
+    next_gate:
+      name: "[NEED UPDATE]"
+      date: "[NEED UPDATE]"
+      exit_criteria: "[NEED UPDATE]"
+    milestones: []
+    decisions: []
+    risks: []
+
+  - id: x2c
+    name: X2c
+    phase: In Design
+    one_pager_url: "[NEED UPDATE]"
+    last_updated: "2026-03-06"
+    last_milestone:
+      name: "[NEED UPDATE]"
+      date: "[NEED UPDATE]"
+    next_gate:
+      name: "[NEED UPDATE]"
+      date: "[NEED UPDATE]"
+      exit_criteria: "[NEED UPDATE]"
+    milestones: []
+    decisions: []
+    risks: []
