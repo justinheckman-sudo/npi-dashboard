@@ -29,6 +29,7 @@
     #nav-brand { color: white; font-weight: 800; font-size: 15px; }
     #nav-sub   { color: #475569; font-size: 12px; }
     #nav-right { display: flex; align-items: center; gap: 12px; }
+    #status-summary { display: flex; align-items: center; gap: 8px; }
     .status-pill { font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
     .status-sep  { width: 1px; height: 16px; background: #1e293b; margin: 0 4px; }
     #nav-date    { color: #334155; font-size: 11px; }
@@ -915,7 +916,7 @@ function buildNavStatus() {
   if (counts['watch'] > 0)    parts.push(`<span class="status-pill" style="color:${RAG['watch'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['watch']} WATCH</span></span>`);
   if (counts['on-track'] > 0) parts.push(`<span class="status-pill" style="color:${RAG['on-track'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['on-track']} ON TRACK</span></span>`);
 
-  document.getElementById('status-summary').innerHTML = parts.join('<span style="color:#334155;font-size:10px;padding:0 4px">·</span>');
+  document.getElementById('status-summary').innerHTML = parts.join('<span style="color:#334155;font-size:10px">·</span>');
 
   const dateStr = TODAY.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   document.getElementById('nav-date').textContent = dateStr;
