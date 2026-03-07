@@ -1,0 +1,1310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NPI Portfolio Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Top Nav Bar ─────────────────────────────────── */
+    #nav {
+      background: #0f172a;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+    #nav-left { display: flex; align-items: baseline; gap: 8px; }
+    #nav-brand { color: white; font-weight: 800; font-size: 15px; }
+    #nav-sub   { color: #475569; font-size: 12px; }
+    #nav-right { display: flex; align-items: center; gap: 12px; }
+    #status-summary { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; }
+    .status-pill { font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .status-sep  { width: 1px; height: 16px; background: #1e293b; margin: 0 4px; }
+    #nav-date    { color: #334155; font-size: 11px; }
+
+    /* ── Milestone Ticker Bar ────────────────────────── */
+    #ticker {
+      background: #1e293b;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 6px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+    #ticker::-webkit-scrollbar { display: none; }
+    #ticker-label {
+      color: #475569;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+      margin-right: 6px;
+    }
+    .ticker-pill {
+      background: #0f172a;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .ticker-pill-prog  { font-weight: 700; }
+    .ticker-pill-gate  { color: #94a3b8; }
+    .ticker-pill-days  { font-weight: 700; }
+    #ticker-empty { color: #475569; font-size: 11px; }
+
+    /* ── Card Grid ───────────────────────────────────── */
+    #grid-wrap {
+      flex: 1;
+      padding: 14px;
+    }
+    #card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 1099px) {
+      #card-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 699px) {
+      #card-grid { grid-template-columns: 1fr; }
+      #grid-wrap { padding: 10px; }
+    }
+
+    /* ── Program Card ────────────────────────────────── */
+    .card {
+      background: white;
+      border-radius: 10px;
+      border-top: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      border-left-width: 4px;
+      border-left-style: solid;
+      /* border-left-color set by JS to RAG status color */
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      padding: 14px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: box-shadow 0.15s ease, transform 0.1s ease;
+    }
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      transform: translateY(-1px);
+    }
+    @media (max-width: 699px) {
+      .card { padding: 10px 12px; }
+    }
+
+    /* Card header */
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-header-left { display: flex; align-items: baseline; gap: 7px; }
+    .card-name     { font-weight: 800; font-size: 15px; color: #0f172a; }
+    .card-subtitle { font-size: 11px; color: #94a3b8; }
+    .card-header-right { display: flex; align-items: center; gap: 5px; }
+    .badge-phase {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .badge-rag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    /* Timeline strip */
+    .timeline-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .timeline-bar-outer {
+      position: relative;
+      height: 5px;
+      background: #e2e8f0;
+      border-radius: 99px;
+    }
+    .timeline-bar-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      border-radius: 99px;
+    }
+    .timeline-today {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 2px solid white;
+      box-shadow: 0 0 0 1px #0f172a;
+      top: 50%; transform: translate(-50%, -50%);
+    }
+    .timeline-gate {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      top: 50%; transform: translate(-50%, -50%);
+      /* plain colored dot — no white ring, clearly distinct from today marker */
+    }
+    .timeline-dashed {
+      height: 5px;
+      border-radius: 99px;
+      border: 1px dashed #cbd5e1;
+      background: transparent;
+    }
+    .timeline-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #94a3b8;
+    }
+    .timeline-right-label { font-weight: 600; }
+    .timeline-pending { font-size: 10px; color: #94a3b8; font-style: italic; }
+
+    /* Next gate section */
+    .next-gate-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .next-gate-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .next-gate-name  { font-size: 17px; font-weight: 800; color: #0f172a; }
+    .next-gate-date  { font-size: 13px; font-weight: 700; }
+    .next-gate-days  { font-size: 10px; font-weight: 600; margin-left: auto; }
+    .criteria-wrap   { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+    .criteria-chip {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 3px;
+      color: #475569;
+    }
+    .next-gate-empty { font-size: 12px; color: #94a3b8; font-style: italic; }
+
+    /* Divider */
+    .card-divider { border: none; border-top: 1px solid #f1f5f9; }
+
+    /* Risks + Decisions */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .risk-row, .decision-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .risk-row:last-child, .decision-row:last-child { margin-bottom: 0; }
+    .risk-icon     { color: #f59e0b; flex-shrink: 0; }
+    .decision-icon { color: #6366f1; flex-shrink: 0; }
+    .item-label  { font-size: 11px; color: #374151; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .item-meta   { font-size: 10px; color: #94a3b8; white-space: nowrap; flex-shrink: 0; }
+    .risks-section, .decisions-section { display: flex; flex-direction: column; }
+
+    /* ── Modal ───────────────────────────────────────── */
+    #modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #modal-backdrop.open {
+      display: flex;
+    }
+
+    #modal {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      max-width: min(85vw, 1100px);
+      width: 100%;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      border-left-width: 4px;
+      border-left-style: solid;
+      border-top: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
+    }
+    #modal::-webkit-scrollbar { width: 6px; }
+    #modal::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+
+    .modal-inner {
+      padding: 20px 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Modal header */
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header-left { display: flex; align-items: baseline; gap: 7px; }
+    .modal-title { font-weight: 800; font-size: 17px; color: #0f172a; }
+    .modal-subtitle { font-size: 11px; color: #94a3b8; }
+    .modal-header-right { display: flex; align-items: center; gap: 6px; }
+    #modal-close {
+      color: #94a3b8;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: none;
+      background: none;
+      margin-left: 6px;
+    }
+    #modal-close:hover { color: #475569; background: #f1f5f9; }
+
+    .modal-divider { border: none; border-top: 1px solid #e2e8f0; }
+
+    /* Program schedule section */
+    .modal-section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .schedule-track {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .schedule-track:last-child { margin-bottom: 0; }
+
+    .schedule-track-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .schedule-track-label {
+      font-size: 10px;
+      color: #94a3b8;
+      width: 20px;
+      flex-shrink: 0;
+      padding-top: 18px; /* align with milestone dots */
+      font-weight: 600;
+    }
+
+    .schedule-milestones {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    /* The connecting line behind all dots */
+    .schedule-milestones::before {
+      content: '';
+      position: absolute;
+      top: 18px; /* center of the dot (dot is 10px, text ~16px above) */
+      left: 5px;
+      right: 5px;
+      height: 1px;
+      background: #e2e8f0;
+      z-index: 0;
+    }
+
+    .schedule-milestone {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sched-name {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .sched-name.current { color: #0f172a; font-weight: 700; }
+
+    .sched-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: relative;
+    }
+    /* complete: filled with status or muted color */
+    .sched-dot.complete {
+      border: none;
+    }
+    /* current: filled + pulse ring */
+    .sched-dot.current {
+      border: 2px solid white;
+      box-shadow: 0 0 0 2px currentColor;
+    }
+    /* upcoming: open circle */
+    .sched-dot.upcoming {
+      background: white !important;
+      border: 1.5px solid #cbd5e1;
+    }
+
+    .sched-date {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* today marker on schedule — vertical dashed line at current phase position */
+    .sched-today-marker {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      width: 1px;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 2;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        #6366f1 0,
+        #6366f1 4px,
+        transparent 4px,
+        transparent 8px
+      );
+    }
+
+    /* Modal next gate — full criteria */
+    .modal-criteria-wrap { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 6px; }
+
+    /* Modal decisions */
+    .modal-decision-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .modal-decision-row:last-child { margin-bottom: 0; }
+    .modal-decision-left { display: flex; align-items: baseline; gap: 5px; flex: 1; min-width: 0; }
+    .modal-decision-label { font-size: 13px; font-weight: 700; color: #0f172a; }
+    .modal-decision-meta { font-size: 11px; color: #94a3b8; white-space: nowrap; flex-shrink: 0; }
+    .modal-decision-options {
+      margin-top: 4px;
+      margin-left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .modal-decision-option {
+      font-size: 11px;
+      color: #475569;
+      font-style: italic;
+    }
+    .modal-decision-option::before {
+      content: '·';
+      margin-right: 5px;
+      font-style: normal;
+      color: #94a3b8;
+    }
+    .modal-decision-block { margin-bottom: 10px; }
+    .modal-decision-block:last-child { margin-bottom: 0; }
+
+    /* Modal risks */
+    .modal-risk-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .modal-risk-row:last-child { margin-bottom: 0; }
+    .modal-risk-left { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+    .modal-risk-label { font-size: 13px; font-weight: 700; color: #374151; }
+    .modal-risk-meta { font-size: 11px; color: #94a3b8; white-space: nowrap; flex-shrink: 0; }
+    .risk-rag {
+      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; display: inline-block;
+    }
+    .risk-rag-red   { background: #dc2626; }
+    .risk-rag-amber { background: #d97706; }
+    .risk-rag-green { background: #059669; }
+    .modal-risk-desc {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+      margin-left: 16px;
+    }
+    .modal-risk-block { margin-bottom: 10px; }
+    .modal-risk-block:last-child { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+
+<!-- ── Top Nav Bar ─────────────────────────────────────────────── -->
+<nav id="nav">
+  <div id="nav-left">
+    <span id="nav-brand">Block HW</span>
+    <span id="nav-sub">NPI Portfolio</span>
+  </div>
+  <div id="nav-right">
+    <span id="status-summary"><!-- injected by JS --></span>
+    <div class="status-sep"></div>
+    <span id="nav-date"><!-- injected by JS --></span>
+  </div>
+</nav>
+
+<!-- ── Milestone Ticker Bar ───────────────────────────────────── -->
+<div id="ticker">
+  <span id="ticker-label">NEXT 30 DAYS</span>
+  <!-- injected by JS -->
+</div>
+
+<!-- ── Card Grid ─────────────────────────────────────────────── -->
+<div id="grid-wrap">
+  <div id="card-grid">
+    <!-- injected by JS -->
+  </div>
+</div>
+
+<!-- ── Modal ─────────────────────────────────────────────────── -->
+<div id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title-text">
+  <div id="modal">
+    <div class="modal-inner" id="modal-content">
+      <!-- injected by JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Data ─────────────────────────────────────────────────────────────────────
+// Status is derived by the UI. programs.yaml is the canonical data source and
+// intentionally omits status/rag fields (forbidden by DATA-02 schema rule).
+// Status embedded here reflects current program knowledge as of 2026-03-07.
+
+const TODAY = new Date('2026-03-07');
+
+const PROGRAMS = {{ programs_json | safe }};
+
+// ─── Static data not driven by programs.yaml — retained from Phase 1 ──────────
+// programSchedule and modalRisks/modalDecisions are richer than the YAML schema
+// supports. They remain here as static JS constants, merged into each program
+// object at runtime.
+const PROGRAM_STATIC = {
+  'w3': {
+    programSchedule: {
+      hw: [
+        { label: 'DEV',      date: 'Sep 2025', status: 'complete' },
+        { label: 'EVT',      date: 'Dec 8',    status: 'complete' },
+        { label: 'Pre-DVT',  date: 'Jan 12',   status: 'complete' },
+        { label: 'DVT',      date: 'Mar 4',     status: 'current'  },
+        { label: 'PVT',      date: 'Apr 6',     status: 'upcoming' },
+        { label: 'Ok2Ship',  date: 'Apr 8',     status: 'upcoming' },
+        { label: 'Vegas',    date: 'Apr 27',    status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'Alpha FW',  date: 'Jan 9',  status: 'complete' },
+        { label: 'Beta FW',   date: 'Feb 17', status: 'complete' },
+        { label: 'Int Beta',  date: 'Mar 23', status: 'upcoming' },
+        { label: 'Day 1 SW',  date: 'Apr 3',  status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'Housing down-select',
+        owner: 'N. George',
+        date: 'Mar 14',
+        options: [
+          'Heavy: SUS+Corian chassis, 79g, ~10% BOM adder',
+          'Light: 67g EVT baseline, ship-ready'
+        ]
+      },
+      {
+        label: 'NFC good-enough spec sign-off',
+        owner: 'D. Wilson',
+        date: 'Mar 7',
+        options: [
+          'Define minimum passing spec for off-center NFC read distance'
+        ]
+      }
+    ],
+    modalRisks: [
+      {
+        label: 'Zero-iteration DVT\u2192PVT',
+        owner: 'J. Heckman',
+        rag: 'red',
+        description: 'Any DVT finding requiring a respin breaks PVT entry date and threatens Vegas launch'
+      },
+      {
+        label: 'SW Day-1 readiness',
+        owner: 'F. Peprah',
+        rag: 'amber',
+        description: 'Day-1 SW must be ready by Apr 3 for Vegas ship; feature completeness at risk'
+      },
+      {
+        label: 'Regulatory certification',
+        owner: 'Y. Lu',
+        rag: 'amber',
+        description: 'US cert window Apr 7, EU May\u2013Jun; any DVT design change may require re-test'
+      }
+    ]
+  },
+  'r2-b4': {
+    programSchedule: {
+      hw: [
+        { label: 'B4 FW Update', date: 'Mar 6',   status: 'complete' },
+        { label: 'Proto2 Start', date: 'Mar 10',  status: 'upcoming' },
+        { label: 'Ops MP1',      date: 'Apr wk1', status: 'upcoming' },
+        { label: 'Ok2Ship',      date: 'May wk1', status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'FW Run-in',  date: 'Mar 10',  status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'ASIC allocation B3\u2192B4 transition',
+        owner: '[NEED UPDATE]',
+        date: 'TBD',
+        options: [
+          'Execution timing dependent on MC2 availability and contract alignment',
+          'New FXSJ-adjacent site leased Apr ($68k/mo) to support US MP in June'
+        ]
+      }
+    ],
+    modalRisks: [
+      {
+        label: 'MC3 delivery 40% received',
+        owner: '[NEED UPDATE]',
+        rag: 'amber',
+        description: 'Final MC3 delivery throttling Proto2 start; close daily tracking on delivery'
+      },
+      {
+        label: 'PCBA test fixture in Oakland customs',
+        owner: '[NEED UPDATE]',
+        rag: 'amber',
+        description: 'PCBA test fixture held in Oakland customs; arrival gating Proto2 build start on 3/10'
+      }
+    ]
+  },
+  'tags': {
+    programSchedule: {
+      hw: [
+        { label: 'T1 Trials',    date: 'Mar wk1',  status: 'current'  },
+        { label: 'CMF Lock',     date: 'Mar 9',    status: 'upcoming' },
+        { label: 'T1 Assy Wand', date: 'Mar wk2',  status: 'upcoming' },
+        { label: 'T2 Assy Wand', date: 'Apr wk1',  status: 'upcoming' },
+        { label: 'Ok2Ramp',      date: 'Apr 23',   status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'Beta Assy',       date: 'Mar wk3', status: 'upcoming' },
+        { label: 'Fidesmo Integ.',  date: 'TBD',     status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'Fidesmo integration approach',
+        owner: '[NEED UPDATE]',
+        date: 'TBD',
+        options: [
+          'Server and client teams working on Fidesmo integration to de-risk provisioning'
+        ]
+      }
+    ],
+    modalRisks: [
+      {
+        label: 'SW staffing post-RIF',
+        owner: '[NEED UPDATE]',
+        rag: 'amber',
+        description: 'Updated SW staffing post-RIF; resourcing impact on Fidesmo integration timeline under assessment'
+      }
+    ]
+  },
+  'ct1': {
+    programSchedule: {
+      hw: [
+        { label: 'Cleanspark Visit', date: 'Mar 10', status: 'upcoming' },
+        { label: 'Concept Review',   date: 'Mar 15', status: 'upcoming' },
+        { label: 'F1 Ok2Fab',        date: 'Mar 18', status: 'upcoming' },
+        { label: 'Proto1a',          date: 'Mar 31', status: 'upcoming' },
+        { label: 'Proto1b',          date: 'Apr 21', status: 'upcoming' },
+      ],
+      sw: []
+    },
+    modalDecisions: [],
+    modalRisks: []
+  },
+  'k1': {
+    programSchedule: {
+      hw: [
+        { label: 'Proto Start', date: 'Feb 3',  status: 'complete' },
+        { label: 'OK2Fab',      date: 'Mar 13', status: 'upcoming' },
+        { label: 'Proto DMR',   date: 'Mar 31', status: 'upcoming' },
+        { label: 'EVT PCB',     date: 'Apr 1',  status: 'upcoming' },
+        { label: 'PRV1',        date: 'Apr 13', status: 'upcoming' },
+        { label: 'EVT',         date: 'May 6',  status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'Alpha Start', date: '[NEED UPDATE]', status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'SW scope for Alpha',
+        owner: '[NEED UPDATE]',
+        date: 'TBD',
+        options: [
+          'SW timelines being reassessed ahead of Alpha start; resourcing stabilization pending'
+        ]
+      }
+    ],
+    modalRisks: [
+      {
+        label: 'PCB release timing risk',
+        owner: '[NEED UPDATE]',
+        rag: 'amber',
+        description: 'EVT flex designs on track but PCB release timing carries risk pending resourcing stabilization'
+      },
+      {
+        label: 'SW timeline resourcing',
+        owner: '[NEED UPDATE]',
+        rag: 'amber',
+        description: 'SW timelines being reassessed ahead of Alpha; Ops aligning MP material planning on updated demand'
+      }
+    ]
+  },
+  'x2c': {
+    programSchedule: {
+      hw: [
+        { label: 'X2b Build',  date: 'Mar 2026', status: 'current'  },
+        { label: 'OK2Fab',     date: 'Mar 13',   status: 'upcoming' },
+        { label: 'PRV1',       date: 'Apr 13',   status: 'upcoming' },
+        { label: 'EVT',        date: 'May 2026', status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'Emoney Fix', date: 'Mar 13', status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'X2b US/CA allocation',
+        owner: 'SDM',
+        date: 'Mar 9',
+        options: [
+          'X2b final build locked; SDM alignment on US/CA split pending'
+        ]
+      }
+    ],
+    modalRisks: [
+      {
+        label: 'OOS risk \u2014 Emoney fix validation',
+        owner: '[NEED UPDATE]',
+        rag: 'red',
+        description: 'CD delivered Emoney fix; awaiting TMN validation. Drop-dead ~Mar 13 before OOS risk materializes at CP 3/9. 3,046 units deployed, 1,797 activated.'
+      }
+    ]
+  }
+};
+
+// Merge static fields into each program object at runtime
+PROGRAMS.forEach(p => Object.assign(p, PROGRAM_STATIC[p.id] || {}));
+
+// ─── Color system ─────────────────────────────────────────────────────────────
+const RAG = {
+  'at-risk': {
+    border:    '#dc2626',
+    labelBg:   '#fef2f2',
+    labelText: '#dc2626',
+    trackFill: '#fca5a5',
+    navDot:    '#f87171',
+    label:     'AT RISK'
+  },
+  'watch': {
+    border:    '#d97706',
+    labelBg:   '#fffbeb',
+    labelText: '#d97706',
+    trackFill: '#fcd34d',
+    navDot:    '#fbbf24',
+    label:     'ON WATCH'
+  },
+  'on-track': {
+    border:    '#059669',
+    labelBg:   '#f0fdf4',
+    labelText: '#059669',
+    trackFill: '#6ee7b7',
+    navDot:    '#34d399',
+    label:     'ON TRACK'
+  }
+};
+
+const PHASE_BADGE = {
+  'DVT':       { bg: '#dbeafe', text: '#1d4ed8' },
+  'EVT':       { bg: '#dcfce7', text: '#166534' },
+  'In Design': { bg: '#f1f5f9', text: '#475569' },
+  'Concept':   { bg: '#f1f5f9', text: '#475569' },
+  'T1 Trials': { bg: '#fef3c7', text: '#92400e' },
+  'Proto':     { bg: '#ede9fe', text: '#5b21b6' },
+  'PRV1':      { bg: '#ede9fe', text: '#5b21b6' },
+  'PVT':       { bg: '#fef3c7', text: '#92400e' },
+  'In Prod':   { bg: '#d1fae5', text: '#065f46' }
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function parseDate(str) {
+  if (!str) return null;
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function daysDiff(dateStr) {
+  // Positive = future, negative = past
+  const d = parseDate(dateStr);
+  if (!d) return null;
+  const ms = d - TODAY;
+  return Math.round(ms / 86400000);
+}
+
+function fmtDate(dateStr) {
+  const d = parseDate(dateStr);
+  if (!d) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function urgencyColor(days) {
+  if (days === null)  return '#64748b';
+  if (days < 0)       return '#dc2626';  // overdue
+  if (days <= 5)      return '#d97706';
+  if (days <= 14)     return '#6366f1';
+  return '#64748b';
+}
+
+function daysLabel(days) {
+  if (days === null) return '';
+  if (days === 0)    return 'today';
+  if (days < 0)      return `${Math.abs(days)}d overdue`;
+  return `${days}d`;
+}
+
+function timelinePct(lastDate, nextDate) {
+  const l = parseDate(lastDate);
+  const n = parseDate(nextDate);
+  if (!l || !n) return null;
+  const total   = n - l;
+  const elapsed = TODAY - l;
+  if (total <= 0) return null;
+  return Math.min(Math.max((elapsed / total) * 100, 2), 96);
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ─── Schedule date parsing ────────────────────────────────────────────────────
+// Milestone dates come in three formats: "Sep 2025", "May 2026" (Mon YYYY),
+// or "Dec 8", "Mar 4" (Mon D — no year). For the year-less format, default to
+// 2026, but if that lands more than 6 months past TODAY it's almost certainly
+// a 2025 date (e.g. "Dec 8" for a completed EVT milestone).
+function parseScheduleDate(str) {
+  if (!str) return null;
+  str = str.trim();
+
+  // "Sep 2025" / "May 2026" — explicit year
+  const monYear = str.match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (monYear) {
+    const d = new Date(`${monYear[1]} 1, ${monYear[2]}`);
+    return isNaN(d) ? null : d;
+  }
+
+  // "Dec 8" / "Mar 4" — infer year
+  const monDay = str.match(/^([A-Za-z]+)\s+(\d{1,2})$/);
+  if (monDay) {
+    const d2026 = new Date(`${monDay[1]} ${monDay[2]}, 2026`);
+    if (!isNaN(d2026)) {
+      const cutoff = new Date(TODAY);
+      cutoff.setMonth(cutoff.getMonth() + 6);
+      if (d2026 > cutoff) {
+        const d2025 = new Date(`${monDay[1]} ${monDay[2]}, 2025`);
+        return isNaN(d2025) ? d2026 : d2025;
+      }
+      return d2026;
+    }
+  }
+
+  return null;
+}
+
+// Given a milestone array, return the fractional position (0–1) of TODAY
+// within the equally-spaced flex columns, interpolated by actual date.
+// Column center for index i = (i + 0.5) / n
+function todayPositionInSchedule(milestones) {
+  const n = milestones.length;
+  if (n === 0) return null;
+
+  const dates = milestones.map(m => parseScheduleDate(m.date));
+  const colCenter = i => (i + 0.5) / n;
+
+  // Last milestone whose date is on or before TODAY
+  let prevIdx = -1;
+  for (let i = 0; i < n; i++) {
+    if (dates[i] && dates[i] <= TODAY) prevIdx = i;
+  }
+  // First milestone whose date is after TODAY
+  let nextIdx = -1;
+  for (let i = 0; i < n; i++) {
+    if (dates[i] && dates[i] > TODAY) { nextIdx = i; break; }
+  }
+
+  if (prevIdx === -1 && nextIdx === -1) return null; // no parseable dates
+
+  // TODAY is before all milestones
+  if (prevIdx === -1) return colCenter(nextIdx) / 2;
+
+  // TODAY is after all milestones
+  if (nextIdx === -1) return (colCenter(prevIdx) + 1) / 2;
+
+  // Interpolate between the two bracketing milestone column centers
+  const span = dates[nextIdx] - dates[prevIdx];
+  if (span <= 0) return colCenter(prevIdx);
+  const frac = (TODAY - dates[prevIdx]) / span;
+  return colCenter(prevIdx) + frac * (colCenter(nextIdx) - colCenter(prevIdx));
+}
+
+// ─── Build top nav status summary ────────────────────────────────────────────
+function buildNavStatus() {
+  const counts = { 'at-risk': 0, 'watch': 0, 'on-track': 0 };
+  PROGRAMS.forEach(p => { if (counts[p.status] !== undefined) counts[p.status]++; });
+
+  const parts = [];
+  if (counts['at-risk'] > 0)  parts.push(`<span class="status-pill" style="color:${RAG['at-risk'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['at-risk']} ${RAG['at-risk'].label}</span></span>`);
+  if (counts['watch'] > 0)    parts.push(`<span class="status-pill" style="color:${RAG['watch'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['watch']} ${RAG['watch'].label}</span></span>`);
+  if (counts['on-track'] > 0) parts.push(`<span class="status-pill" style="color:${RAG['on-track'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['on-track']} ${RAG['on-track'].label}</span></span>`);
+
+  document.getElementById('status-summary').innerHTML = parts.join('<span style="color:#334155;font-size:10px">·</span>');
+
+  const dateStr = TODAY.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('nav-date').textContent = dateStr;
+}
+
+// ─── Build milestone ticker ───────────────────────────────────────────────────
+function buildTicker() {
+  const ticker = document.getElementById('ticker');
+  const pills = [];
+
+  PROGRAMS.forEach(prog => {
+    if (!prog.nextGate || !prog.nextGate.date) return;
+    const days = daysDiff(prog.nextGate.date);
+    if (days === null || days < 0 || days > 30) return;
+    pills.push({ prog, days, gate: prog.nextGate.label, date: prog.nextGate.date });
+  });
+
+  // Sort ascending by date
+  pills.sort((a, b) => a.days - b.days);
+
+  if (pills.length === 0) {
+    ticker.insertAdjacentHTML('beforeend', '<span id="ticker-empty">No milestones in window</span>');
+    return;
+  }
+
+  const rag = RAG;
+  pills.forEach(({ prog, days, gate }) => {
+    const r = rag[prog.status];
+    const statusColor = r.border;
+    const borderColor = statusColor + '33'; // 20% opacity hex approx
+    const daysColor = days <= 7 ? '#fbbf24' : '#6366f1';
+    const daysText = days === 0 ? 'today' : `+${days}d`;
+
+    const pill = document.createElement('span');
+    pill.className = 'ticker-pill';
+    pill.style.border = `1px solid ${borderColor}`;
+    pill.innerHTML = `<span class="ticker-pill-prog" style="color:${statusColor}">${esc(prog.name)}</span><span class="ticker-pill-gate">${esc(gate)}</span><span class="ticker-pill-days" style="color:${daysColor}">${daysText}</span>`;
+    ticker.appendChild(pill);
+  });
+}
+
+// ─── Build cards ─────────────────────────────────────────────────────────────
+function buildCards() {
+  const grid = document.getElementById('card-grid');
+
+  PROGRAMS.forEach(prog => {
+    const r = RAG[prog.status] || RAG['watch'];
+    const ph = PHASE_BADGE[prog.phase] || PHASE_BADGE['In Design'];
+
+    // ── Header
+    const headerHTML = `
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-name">${esc(prog.name)}</span>
+          ${prog.subtitle ? `<span class="card-subtitle">${esc(prog.subtitle)}</span>` : ''}
+        </div>
+        <div class="card-header-right">
+          <span class="badge-phase" style="background:${ph.bg};color:${ph.text}">${esc(prog.phase)}</span>
+          <span class="badge-rag" style="background:${r.labelBg};color:${r.labelText}">${r.label}</span>
+        </div>
+      </div>`;
+
+    // ── Timeline strip
+    let timelineHTML;
+    const hasLast = prog.lastGate && prog.lastGate.date;
+    const hasNext = prog.nextGate && prog.nextGate.date;
+
+    if (hasLast && hasNext) {
+      const pct = timelinePct(prog.lastGate.date, prog.nextGate.date);
+      const todayPct = pct !== null ? pct : 50;
+      // Gate marker at right end (96% to avoid overflow)
+      const gateLeft = Math.min(Math.max(todayPct + 8, 90), 96);
+
+      const nextDays = daysDiff(prog.nextGate.date);
+      const nextColor = urgencyColor(nextDays);
+
+      timelineHTML = `
+        <div class="timeline-wrap">
+          <div class="timeline-bar-outer">
+            <div class="timeline-bar-fill" style="width:${todayPct}%;background:${r.trackFill}"></div>
+            <div class="timeline-today" style="left:${todayPct}%"></div>
+            <div class="timeline-gate" style="left:${gateLeft}%;background:${r.border}"></div>
+          </div>
+          <div class="timeline-labels">
+            <span>${esc(prog.lastGate.label)} · ${fmtDate(prog.lastGate.date)}</span>
+            <span class="timeline-right-label" style="color:${nextColor}">${esc(prog.nextGate.label)} · ${fmtDate(prog.nextGate.date)}</span>
+          </div>
+        </div>`;
+    } else {
+      timelineHTML = `
+        <div class="timeline-wrap">
+          <div class="timeline-dashed"></div>
+          <span class="timeline-pending">Timeline pending</span>
+        </div>`;
+    }
+
+    // ── Next gate section
+    let nextGateHTML;
+    if (prog.nextGate && prog.nextGate.label) {
+      const days = daysDiff(prog.nextGate.date);
+      const color = urgencyColor(days);
+      const chipsHTML = (prog.nextGate.criteria || [])
+        .map(c => `<span class="criteria-chip">${esc(c)}</span>`)
+        .join('');
+
+      nextGateHTML = `
+        <div>
+          <div class="next-gate-label">Next Gate</div>
+          <div class="next-gate-row">
+            <span class="next-gate-name">${esc(prog.nextGate.label)}</span>
+            ${prog.nextGate.date ? `<span class="next-gate-date" style="color:${color}">${fmtDate(prog.nextGate.date)}</span>` : ''}
+            ${days !== null ? `<span class="next-gate-days" style="color:${color}">${daysLabel(days)}</span>` : ''}
+          </div>
+          ${chipsHTML ? `<div class="criteria-wrap">${chipsHTML}</div>` : ''}
+        </div>`;
+    } else {
+      nextGateHTML = `<div><span class="next-gate-empty">Awaiting update</span></div>`;
+    }
+
+    // ── Risks (max 2)
+    const visibleRisks = (prog.risks || []).slice(0, 2);
+    let risksHTML = '';
+    if (visibleRisks.length > 0) {
+      const rows = visibleRisks.map(risk => `
+        <div class="risk-row">
+          <span class="risk-icon">⚠</span>
+          <span class="item-label">${esc(risk.label)}</span>
+          <span class="item-meta">${esc(risk.owner)}</span>
+        </div>`).join('');
+      risksHTML = `<div class="risks-section"><div class="section-label">Risks</div>${rows}</div>`;
+    }
+
+    // ── Decisions (max 2)
+    const visibleDecisions = (prog.decisions || []).slice(0, 2);
+    let decisionsHTML = '';
+    if (visibleDecisions.length > 0) {
+      const rows = visibleDecisions.map(d => `
+        <div class="decision-row">
+          <span class="decision-icon">◆</span>
+          <span class="item-label">${esc(d.label)}</span>
+          <span class="item-meta">${esc(d.owner)}${d.date ? ' · ' + esc(d.date) : ''}</span>
+        </div>`).join('');
+      decisionsHTML = `<div class="decisions-section"><div class="section-label">Decisions</div>${rows}</div>`;
+    }
+
+    // ── Divider + combined bottom section
+    const hasRisksOrDecisions = visibleRisks.length > 0 || visibleDecisions.length > 0;
+    const dividerHTML = hasRisksOrDecisions ? '<hr class="card-divider" />' : '';
+    const bottomHTML = hasRisksOrDecisions
+      ? `${dividerHTML}${risksHTML}${decisionsHTML}`
+      : '';
+
+    // ── Assemble card
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.borderLeftColor = r.border;
+    card.dataset.progId = prog.id;
+    card.innerHTML = headerHTML + timelineHTML + nextGateHTML + bottomHTML;
+    card.addEventListener('click', () => openModal(prog.id));
+    grid.appendChild(card);
+  });
+}
+
+// ─── Modal ───────────────────────────────────────────────────────────────────
+function buildScheduleTrack(milestones, trackLabel, statusColor) {
+  if (!milestones || milestones.length === 0) return '';
+
+  const dots = milestones.map(m => {
+    const isCurrent  = m.status === 'current';
+    const isComplete = m.status === 'complete';
+
+    const dotStyle = isCurrent
+      ? `background:${statusColor};color:${statusColor};border:2px solid white;box-shadow:0 0 0 2px ${statusColor};`
+      : isComplete
+        ? `background:#94a3b8;`
+        : `background:white;border:1.5px solid #cbd5e1;`;
+
+    const nameClass = isCurrent ? 'sched-name current' : 'sched-name';
+
+    return `
+      <div class="schedule-milestone">
+        <span class="${nameClass}">${esc(m.label)}</span>
+        <div class="sched-dot ${m.status}" style="${dotStyle}"></div>
+        <span class="sched-date">${esc(m.date)}</span>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="schedule-track">
+      <div class="schedule-track-row">
+        <span class="schedule-track-label">${esc(trackLabel)}</span>
+        <div class="schedule-milestones">${dots}</div>
+      </div>
+    </div>`;
+}
+
+function openModal(progId) {
+  const prog = PROGRAMS.find(p => p.id === progId);
+  if (!prog) return;
+
+  const r  = RAG[prog.status] || RAG['watch'];
+  const ph = PHASE_BADGE[prog.phase] || PHASE_BADGE['In Design'];
+
+  // ── Modal header
+  const headerHTML = `
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <span class="modal-title" id="modal-title-text">${esc(prog.name)}</span>
+        ${prog.subtitle ? `<span class="modal-subtitle">${esc(prog.subtitle)}</span>` : ''}
+      </div>
+      <div class="modal-header-right">
+        <span class="badge-phase" style="background:${ph.bg};color:${ph.text}">${esc(prog.phase)}</span>
+        <span class="badge-rag" style="background:${r.labelBg};color:${r.labelText}">${r.label}</span>
+        <button id="modal-close" aria-label="Close modal">&#10005;</button>
+      </div>
+    </div>`;
+
+  // ── Program Schedule section
+  let scheduleHTML = '';
+  if (prog.programSchedule) {
+    const hwTrack = buildScheduleTrack(prog.programSchedule.hw, 'HW', r.border);
+    const swTrack = buildScheduleTrack(prog.programSchedule.sw, 'SW', r.border);
+    if (hwTrack || swTrack) {
+      // TODAY marker: single spanning line across both HW and SW rows.
+      // Position is date-interpolated: TODAY falls proportionally between the two
+      // milestone column centers that bracket it, based on actual parsed dates.
+      // .schedule-track-label is width:20px + gap:8px = 28px before the milestones area,
+      // so the CSS calc accounts for that offset.
+      let todaySpanHTML = '';
+      const hwMs = prog.programSchedule.hw || [];
+      const todayFrac = todayPositionInSchedule(hwMs);
+      if (todayFrac !== null) {
+        todaySpanHTML = `<div class="sched-today-marker" style="left:calc(28px + (100% - 28px) * ${todayFrac.toFixed(4)})"></div>`;
+      }
+
+      scheduleHTML = `
+        <div>
+          <div class="modal-section-label">Program Schedule</div>
+          <div style="position:relative">
+            ${hwTrack}
+            ${swTrack}
+            ${todaySpanHTML}
+          </div>
+        </div>`;
+    }
+  }
+
+  // ── Next Gate section (full criteria)
+  let nextGateHTML = '';
+  if (prog.nextGate && prog.nextGate.label) {
+    const days  = daysDiff(prog.nextGate.date);
+    const color = urgencyColor(days);
+    const chipsHTML = (prog.nextGate.criteria || [])
+      .map(c => `<span class="criteria-chip">${esc(c)}</span>`)
+      .join('');
+
+    nextGateHTML = `
+      <div>
+        <div class="modal-section-label">Next Gate</div>
+        <div class="next-gate-row">
+          <span class="next-gate-name">${esc(prog.nextGate.label)}</span>
+          ${prog.nextGate.date ? `<span class="next-gate-date" style="color:${color}">${fmtDate(prog.nextGate.date)}</span>` : ''}
+          ${days !== null ? `<span class="next-gate-days" style="color:${color}">${daysLabel(days)}</span>` : ''}
+        </div>
+        ${chipsHTML ? `<div class="modal-criteria-wrap">${chipsHTML}</div>` : ''}
+      </div>`;
+  }
+
+  // ── Decisions section
+  const modalDecisions = prog.modalDecisions || [];
+  let decisionsHTML = '';
+  if (modalDecisions.length > 0) {
+    const blocks = modalDecisions.map(d => {
+      const optionsHTML = (d.options || [])
+        .map(o => `<div class="modal-decision-option">${esc(o)}</div>`)
+        .join('');
+      return `
+        <div class="modal-decision-block">
+          <div class="modal-decision-row">
+            <div class="modal-decision-left">
+              <span style="color:#6366f1;flex-shrink:0">◆</span>
+              <span class="modal-decision-label">${esc(d.label)}</span>
+            </div>
+            <span class="modal-decision-meta">${esc(d.owner)}${d.date ? ' · ' + esc(d.date) : ''}</span>
+          </div>
+          ${optionsHTML ? `<div class="modal-decision-options">${optionsHTML}</div>` : ''}
+        </div>`;
+    }).join('');
+
+    decisionsHTML = `
+      <div>
+        <div class="modal-section-label">Open Decisions</div>
+        ${blocks}
+      </div>`;
+  }
+
+  // ── Risks section
+  const modalRisks = prog.modalRisks || [];
+  let risksHTML = '';
+  if (modalRisks.length > 0) {
+    const RAG_LABELS = { red: 'RED', amber: 'AMBER', green: 'GREEN' };
+    const blocks = modalRisks.map(risk => {
+      const dot = risk.rag
+        ? `<span class="risk-rag risk-rag-${risk.rag}" title="${RAG_LABELS[risk.rag] || risk.rag}"></span>`
+        : `<span style="color:#f59e0b;flex-shrink:0;font-size:11px">⚠</span>`;
+      return `
+      <div class="modal-risk-block">
+        <div class="modal-risk-row">
+          <div class="modal-risk-left">
+            ${dot}
+            <span class="modal-risk-label">${esc(risk.label)}</span>
+          </div>
+          ${risk.owner ? `<span class="modal-risk-meta">${esc(risk.owner)}</span>` : ''}
+        </div>
+        ${risk.description ? `<div class="modal-risk-desc">${esc(risk.description)}</div>` : ''}
+      </div>`;
+    }).join('');
+
+    risksHTML = `
+      <div>
+        <div class="modal-section-label">Risks</div>
+        ${blocks}
+      </div>`;
+  }
+
+  // ── Assemble modal content with dividers
+  const sections = [];
+  sections.push(headerHTML);
+  if (scheduleHTML) {
+    sections.push('<hr class="modal-divider" />');
+    sections.push(scheduleHTML);
+  }
+  if (nextGateHTML) {
+    sections.push('<hr class="modal-divider" />');
+    sections.push(nextGateHTML);
+  }
+  if (decisionsHTML) {
+    sections.push('<hr class="modal-divider" />');
+    sections.push(decisionsHTML);
+  }
+  if (risksHTML) {
+    sections.push('<hr class="modal-divider" />');
+    sections.push(risksHTML);
+  }
+
+  const modalContent = document.getElementById('modal-content');
+  modalContent.innerHTML = sections.join('');
+
+  // Set left border color to match program RAG
+  document.getElementById('modal').style.borderLeftColor = r.border;
+
+  // Wire close button
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+
+  // Open
+  document.getElementById('modal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close on backdrop click (outside modal)
+document.getElementById('modal-backdrop').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ─── Initialize ───────────────────────────────────────────────────────────────
+buildNavStatus();
+buildTicker();
+buildCards();
+</script>
+</body>
+</html>
