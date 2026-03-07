@@ -29,8 +29,8 @@
     #nav-brand { color: white; font-weight: 800; font-size: 15px; }
     #nav-sub   { color: #475569; font-size: 12px; }
     #nav-right { display: flex; align-items: center; gap: 12px; }
-    #status-summary { display: flex; align-items: center; gap: 8px; }
-    .status-pill { font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+    #status-summary { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; }
+    .status-pill { font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
     .status-sep  { width: 1px; height: 16px; background: #1e293b; margin: 0 4px; }
     #nav-date    { color: #334155; font-size: 11px; }
 
@@ -92,8 +92,12 @@
     .card {
       background: white;
       border-radius: 10px;
-      border: 1px solid #e2e8f0;
+      border-top: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
       border-left-width: 4px;
+      border-left-style: solid;
+      /* border-left-color set by JS to RAG status color */
       box-shadow: 0 1px 4px rgba(0,0,0,0.05);
       padding: 14px 16px 12px;
       display: flex;
@@ -159,8 +163,8 @@
       position: absolute;
       width: 10px; height: 10px;
       border-radius: 50%;
-      border: 2px solid white;
       top: 50%; transform: translate(-50%, -50%);
+      /* plain colored dot — no white ring, clearly distinct from today marker */
     }
     .timeline-dashed {
       height: 5px;
@@ -396,26 +400,22 @@
       white-space: nowrap;
     }
 
-    /* today marker on schedule */
+    /* today marker on schedule — vertical dashed line at current phase position */
     .sched-today-marker {
       position: absolute;
-      top: 10px; /* below the dot row */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      top: 4px;
+      bottom: 4px;
+      width: 1px;
+      transform: translateX(-50%);
       pointer-events: none;
       z-index: 2;
-    }
-    .sched-today-line {
-      width: 1px;
-      height: 10px;
-      background: #6366f1;
-    }
-    .sched-today-text {
-      font-size: 9px;
-      font-weight: 700;
-      color: #6366f1;
-      letter-spacing: 0.04em;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        #6366f1 0,
+        #6366f1 4px,
+        transparent 4px,
+        transparent 8px
+      );
     }
 
     /* Modal next gate — full criteria */
@@ -1084,12 +1084,16 @@ function buildCards() {
 function buildScheduleTrack(milestones, trackLabel, statusColor) {
   if (!milestones || milestones.length === 0) return '';
 
+  const n = milestones.length;
+  const currentIdx = milestones.findIndex(m => m.status === 'current');
+  // Position today at the center of the current milestone's flex column
+  const todayPct = currentIdx >= 0 ? ((currentIdx + 0.5) / n * 100).toFixed(1) : null;
+
   const dots = milestones.map(m => {
     const isCurrent  = m.status === 'current';
     const isComplete = m.status === 'complete';
     const isUpcoming = m.status === 'upcoming';
 
-    const dotColor = isComplete ? '#94a3b8' : isCurrent ? statusColor : 'white';
     const dotStyle = isCurrent
       ? `background:${statusColor};color:${statusColor};border:2px solid white;box-shadow:0 0 0 2px ${statusColor};`
       : isComplete
@@ -1106,11 +1110,16 @@ function buildScheduleTrack(milestones, trackLabel, statusColor) {
       </div>`;
   }).join('');
 
+  // TODAY marker: vertical dashed line at current phase center position
+  const todayMarkerHTML = todayPct !== null
+    ? `<div class="sched-today-marker" style="left:${todayPct}%"></div>`
+    : '';
+
   return `
     <div class="schedule-track">
       <div class="schedule-track-row">
         <span class="schedule-track-label">${esc(trackLabel)}</span>
-        <div class="schedule-milestones">${dots}</div>
+        <div class="schedule-milestones">${dots}${todayMarkerHTML}</div>
       </div>
     </div>`;
 }
