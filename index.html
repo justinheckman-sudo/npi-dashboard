@@ -98,6 +98,12 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      cursor: pointer;
+      transition: box-shadow 0.15s ease, transform 0.1s ease;
+    }
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      transform: translateY(-1px);
     }
     @media (max-width: 699px) {
       .card { padding: 10px 12px; }
@@ -223,6 +229,250 @@
     .item-label  { font-size: 11px; color: #374151; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .item-meta   { font-size: 10px; color: #94a3b8; white-space: nowrap; flex-shrink: 0; }
     .risks-section, .decisions-section { display: flex; flex-direction: column; }
+
+    /* ── Modal ───────────────────────────────────────── */
+    #modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #modal-backdrop.open {
+      display: flex;
+    }
+
+    #modal {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      max-width: 640px;
+      width: 100%;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      border-left-width: 4px;
+      border-left-style: solid;
+      border-top: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
+    }
+    #modal::-webkit-scrollbar { width: 6px; }
+    #modal::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+
+    .modal-inner {
+      padding: 20px 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Modal header */
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header-left { display: flex; align-items: baseline; gap: 7px; }
+    .modal-title { font-weight: 800; font-size: 17px; color: #0f172a; }
+    .modal-subtitle { font-size: 11px; color: #94a3b8; }
+    .modal-header-right { display: flex; align-items: center; gap: 6px; }
+    #modal-close {
+      color: #94a3b8;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: none;
+      background: none;
+      margin-left: 6px;
+    }
+    #modal-close:hover { color: #475569; background: #f1f5f9; }
+
+    .modal-divider { border: none; border-top: 1px solid #e2e8f0; }
+
+    /* Program schedule section */
+    .modal-section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .schedule-track {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .schedule-track:last-child { margin-bottom: 0; }
+
+    .schedule-track-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .schedule-track-label {
+      font-size: 10px;
+      color: #94a3b8;
+      width: 20px;
+      flex-shrink: 0;
+      padding-top: 18px; /* align with milestone dots */
+      font-weight: 600;
+    }
+
+    .schedule-milestones {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    /* The connecting line behind all dots */
+    .schedule-milestones::before {
+      content: '';
+      position: absolute;
+      top: 18px; /* center of the dot (dot is 10px, text ~16px above) */
+      left: 5px;
+      right: 5px;
+      height: 1px;
+      background: #e2e8f0;
+      z-index: 0;
+    }
+
+    .schedule-milestone {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sched-name {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .sched-name.current { color: #0f172a; font-weight: 700; }
+
+    .sched-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: relative;
+    }
+    /* complete: filled with status or muted color */
+    .sched-dot.complete {
+      border: none;
+    }
+    /* current: filled + pulse ring */
+    .sched-dot.current {
+      border: 2px solid white;
+      box-shadow: 0 0 0 2px currentColor;
+    }
+    /* upcoming: open circle */
+    .sched-dot.upcoming {
+      background: white !important;
+      border: 1.5px solid #cbd5e1;
+    }
+
+    .sched-date {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* today marker on schedule */
+    .sched-today-marker {
+      position: absolute;
+      top: 10px; /* below the dot row */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .sched-today-line {
+      width: 1px;
+      height: 10px;
+      background: #6366f1;
+    }
+    .sched-today-text {
+      font-size: 9px;
+      font-weight: 700;
+      color: #6366f1;
+      letter-spacing: 0.04em;
+    }
+
+    /* Modal next gate — full criteria */
+    .modal-criteria-wrap { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 6px; }
+
+    /* Modal decisions */
+    .modal-decision-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .modal-decision-row:last-child { margin-bottom: 0; }
+    .modal-decision-left { display: flex; align-items: baseline; gap: 5px; flex: 1; min-width: 0; }
+    .modal-decision-label { font-size: 13px; font-weight: 700; color: #0f172a; }
+    .modal-decision-meta { font-size: 11px; color: #94a3b8; white-space: nowrap; flex-shrink: 0; }
+    .modal-decision-options {
+      margin-top: 4px;
+      margin-left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .modal-decision-option {
+      font-size: 11px;
+      color: #475569;
+      font-style: italic;
+    }
+    .modal-decision-option::before {
+      content: '·';
+      margin-right: 5px;
+      font-style: normal;
+      color: #94a3b8;
+    }
+    .modal-decision-block { margin-bottom: 10px; }
+    .modal-decision-block:last-child { margin-bottom: 0; }
+
+    /* Modal risks */
+    .modal-risk-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .modal-risk-row:last-child { margin-bottom: 0; }
+    .modal-risk-left { display: flex; align-items: baseline; gap: 5px; flex: 1; min-width: 0; }
+    .modal-risk-label { font-size: 13px; font-weight: 700; color: #374151; }
+    .modal-risk-meta { font-size: 11px; color: #94a3b8; white-space: nowrap; flex-shrink: 0; }
+    .modal-risk-desc {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+      margin-left: 16px;
+    }
+    .modal-risk-block { margin-bottom: 10px; }
+    .modal-risk-block:last-child { margin-bottom: 0; }
   </style>
 </head>
 <body>
@@ -250,6 +500,15 @@
 <div id="grid-wrap">
   <div id="card-grid">
     <!-- injected by JS -->
+  </div>
+</div>
+
+<!-- ── Modal ─────────────────────────────────────────────────── -->
+<div id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title-text">
+  <div id="modal">
+    <div class="modal-inner" id="modal-content">
+      <!-- injected by JS -->
+    </div>
   </div>
 </div>
 
@@ -281,6 +540,59 @@ const PROGRAMS = [
     decisions: [
       { label: 'Housing down-select', owner: 'N. George', date: 'Mar 14' },
       { label: 'NFC good-enough spec', owner: 'D. Wilson', date: 'Mar 7' }
+    ],
+    programSchedule: {
+      hw: [
+        { label: 'DEV',      date: 'Sep 2025', status: 'complete' },
+        { label: 'EVT',      date: 'Dec 8',    status: 'complete' },
+        { label: 'Pre-DVT',  date: 'Jan 12',   status: 'complete' },
+        { label: 'DVT',      date: 'Mar 4',     status: 'current'  },
+        { label: 'PVT',      date: 'Apr 6',     status: 'upcoming' },
+        { label: 'Ok2Ship',  date: 'Apr 8',     status: 'upcoming' },
+        { label: 'Vegas',    date: 'Apr 27',    status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'Alpha FW',  date: 'Jan 9',  status: 'complete' },
+        { label: 'Beta FW',   date: 'Feb 17', status: 'complete' },
+        { label: 'Int Beta',  date: 'Mar 23', status: 'upcoming' },
+        { label: 'Day 1 SW',  date: 'Apr 3',  status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'Housing down-select',
+        owner: 'N. George',
+        date: 'Mar 14',
+        options: [
+          'Heavy: SUS+Corian chassis, 79g, ~10% BOM adder',
+          'Light: 67g EVT baseline, ship-ready'
+        ]
+      },
+      {
+        label: 'NFC good-enough spec sign-off',
+        owner: 'D. Wilson',
+        date: 'Mar 7',
+        options: [
+          'Define minimum passing spec for off-center NFC read distance'
+        ]
+      }
+    ],
+    modalRisks: [
+      {
+        label: 'Zero-iteration DVT→PVT',
+        owner: 'J. Heckman',
+        description: 'Any DVT finding requiring a respin breaks PVT entry date and threatens Vegas launch'
+      },
+      {
+        label: 'SW Day-1 readiness',
+        owner: 'F. Peprah',
+        description: 'Day-1 SW must be ready by Apr 3 for Vegas ship; feature completeness at risk'
+      },
+      {
+        label: 'Regulatory certification',
+        owner: 'Y. Lu',
+        description: 'US cert window Apr 7, EU May–Jun; any DVT design change may require re-test'
+      }
     ]
   },
   {
@@ -300,6 +612,41 @@ const PROGRAMS = [
     ],
     decisions: [
       { label: 'Cooling architecture selection', owner: 'A. Patel', date: 'Mar 20' }
+    ],
+    programSchedule: {
+      hw: [
+        { label: 'Concept',  date: 'Jan 2026', status: 'complete' },
+        { label: 'EVT',      date: 'Feb 10',   status: 'current'  },
+        { label: 'DVT',      date: 'May 2026', status: 'upcoming' },
+        { label: 'PVT',      date: 'Aug 2026', status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'FW Alpha', date: 'Mar 2026', status: 'upcoming' },
+        { label: 'FW Beta',  date: 'Jun 2026', status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'Cooling architecture selection',
+        owner: 'A. Patel',
+        date: 'Mar 20',
+        options: [
+          'Active liquid cooling: higher performance, more complex integration',
+          'Air-cooled immersion: lower cost, proven at scale'
+        ]
+      }
+    ],
+    modalRisks: [
+      {
+        label: 'Hashboard yield below target',
+        owner: 'T. Nguyen',
+        description: 'EVT hashboard FPY trending below 85% target; root cause investigation ongoing'
+      },
+      {
+        label: 'Thermal validation timeline',
+        owner: 'A. Patel',
+        description: 'Cooling architecture decision gating thermal test plan; any slip pushes BRR'
+      }
     ]
   },
   {
@@ -315,7 +662,30 @@ const PROGRAMS = [
       criteria: ['ID concept approved', 'BOM draft complete']
     },
     risks: [],
-    decisions: []
+    decisions: [],
+    programSchedule: {
+      hw: [
+        { label: 'Concept',   date: 'Mar 2026', status: 'current'  },
+        { label: 'EVT',       date: 'Jul 2026', status: 'upcoming' },
+        { label: 'DVT',       date: 'Nov 2026', status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'FW Spec',   date: 'May 2026', status: 'upcoming' },
+        { label: 'FW Alpha',  date: 'Sep 2026', status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'Form factor selection',
+        owner: 'ID Team',
+        date: 'Apr 5',
+        options: [
+          'Card form factor: wallet-compatible, existing manufacturing tooling',
+          'Fob form factor: higher visibility, new tooling required'
+        ]
+      }
+    ],
+    modalRisks: []
   },
   {
     id: 'ct1',
@@ -332,7 +702,37 @@ const PROGRAMS = [
     risks: [
       { label: 'Display supply constraints', owner: 'M. Chen' }
     ],
-    decisions: []
+    decisions: [],
+    programSchedule: {
+      hw: [
+        { label: 'Concept',   date: 'Feb 2026', status: 'complete' },
+        { label: 'Design',    date: 'Apr 12',   status: 'current'  },
+        { label: 'EVT',       date: 'Aug 2026', status: 'upcoming' },
+        { label: 'DVT',       date: 'Dec 2026', status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'OS Selection', date: 'May 2026', status: 'upcoming' },
+        { label: 'FW Alpha',     date: 'Oct 2026', status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'Display vendor selection',
+        owner: 'M. Chen',
+        date: 'Apr 12',
+        options: [
+          'Primary vendor: proven supply chain, 6-week lead time',
+          'Alternative vendor: better pricing, 12-week lead time, unqualified'
+        ]
+      }
+    ],
+    modalRisks: [
+      {
+        label: 'Display supply constraints',
+        owner: 'M. Chen',
+        description: 'Preferred display vendor quoting 12-week lead time; may gate EVT input date'
+      }
+    ]
   },
   {
     id: 'k1',
@@ -349,7 +749,31 @@ const PROGRAMS = [
     risks: [],
     decisions: [
       { label: 'Antenna placement strategy', owner: 'S. Kim', date: 'Mar 25' }
-    ]
+    ],
+    programSchedule: {
+      hw: [
+        { label: 'EVT Input', date: 'Feb 28',   status: 'complete' },
+        { label: 'EVT FAI',   date: 'Mar 28',   status: 'current'  },
+        { label: 'DVT',       date: 'Jun 2026', status: 'upcoming' },
+        { label: 'PVT',       date: 'Sep 2026', status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'FW Bring-up', date: 'Mar 28',   status: 'upcoming' },
+        { label: 'FW Alpha',    date: 'Jul 2026', status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'Antenna placement strategy',
+        owner: 'S. Kim',
+        date: 'Mar 25',
+        options: [
+          'Internal flex antenna: cleaner design, more integration risk',
+          'External stub antenna: proven performance, aesthetic tradeoff'
+        ]
+      }
+    ],
+    modalRisks: []
   },
   {
     id: 'x2c',
@@ -360,7 +784,34 @@ const PROGRAMS = [
     lastGate: null,
     nextGate: null,
     risks: [],
-    decisions: []
+    decisions: [],
+    programSchedule: {
+      hw: [
+        { label: 'Concept',  date: 'Mar 2026', status: 'current'  },
+        { label: 'EVT',      date: 'Sep 2026', status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'FW Spec',  date: 'Jun 2026', status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'Accessory product scope',
+        owner: 'PM Team',
+        date: 'Apr 2026',
+        options: [
+          'Wallet case: high demand signal, minimal EE content',
+          'Charging stand: differentiated, more complex NPI'
+        ]
+      }
+    ],
+    modalRisks: [
+      {
+        label: 'Scope definition pending',
+        owner: 'PM Team',
+        description: 'Product scope not yet locked; EVT planning cannot begin until concept freeze'
+      }
+    ]
   }
 ];
 
@@ -621,10 +1072,204 @@ function buildCards() {
     const card = document.createElement('div');
     card.className = 'card';
     card.style.borderLeftColor = r.border;
+    card.dataset.progId = prog.id;
     card.innerHTML = headerHTML + timelineHTML + nextGateHTML + bottomHTML;
+    card.addEventListener('click', () => openModal(prog.id));
     grid.appendChild(card);
   });
 }
+
+// ─── Modal ───────────────────────────────────────────────────────────────────
+function buildScheduleTrack(milestones, trackLabel, statusColor) {
+  if (!milestones || milestones.length === 0) return '';
+
+  const dots = milestones.map(m => {
+    const isCurrent  = m.status === 'current';
+    const isComplete = m.status === 'complete';
+    const isUpcoming = m.status === 'upcoming';
+
+    const dotColor = isComplete ? '#94a3b8' : isCurrent ? statusColor : 'white';
+    const dotStyle = isCurrent
+      ? `background:${statusColor};color:${statusColor};border:2px solid white;box-shadow:0 0 0 2px ${statusColor};`
+      : isComplete
+        ? `background:#94a3b8;`
+        : `background:white;border:1.5px solid #cbd5e1;`;
+
+    const nameClass = isCurrent ? 'sched-name current' : 'sched-name';
+
+    return `
+      <div class="schedule-milestone">
+        <span class="${nameClass}">${esc(m.label)}</span>
+        <div class="sched-dot ${m.status}" style="${dotStyle}"></div>
+        <span class="sched-date">${esc(m.date)}</span>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="schedule-track">
+      <div class="schedule-track-row">
+        <span class="schedule-track-label">${esc(trackLabel)}</span>
+        <div class="schedule-milestones">${dots}</div>
+      </div>
+    </div>`;
+}
+
+function openModal(progId) {
+  const prog = PROGRAMS.find(p => p.id === progId);
+  if (!prog) return;
+
+  const r  = RAG[prog.status] || RAG['watch'];
+  const ph = PHASE_BADGE[prog.phase] || PHASE_BADGE['In Design'];
+
+  // ── Modal header
+  const headerHTML = `
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <span class="modal-title" id="modal-title-text">${esc(prog.name)}</span>
+        ${prog.subtitle ? `<span class="modal-subtitle">${esc(prog.subtitle)}</span>` : ''}
+      </div>
+      <div class="modal-header-right">
+        <span class="badge-phase" style="background:${ph.bg};color:${ph.text}">${esc(prog.phase)}</span>
+        <span class="badge-rag" style="background:${r.labelBg};color:${r.labelText}">${r.label}</span>
+        <button id="modal-close" aria-label="Close modal">&#10005;</button>
+      </div>
+    </div>`;
+
+  // ── Program Schedule section
+  let scheduleHTML = '';
+  if (prog.programSchedule) {
+    const hwTrack = buildScheduleTrack(prog.programSchedule.hw, 'HW', r.border);
+    const swTrack = buildScheduleTrack(prog.programSchedule.sw, 'SW', r.border);
+    if (hwTrack || swTrack) {
+      scheduleHTML = `
+        <div>
+          <div class="modal-section-label">Program Schedule</div>
+          ${hwTrack}
+          ${swTrack}
+        </div>`;
+    }
+  }
+
+  // ── Next Gate section (full criteria)
+  let nextGateHTML = '';
+  if (prog.nextGate && prog.nextGate.label) {
+    const days  = daysDiff(prog.nextGate.date);
+    const color = urgencyColor(days);
+    const chipsHTML = (prog.nextGate.criteria || [])
+      .map(c => `<span class="criteria-chip">${esc(c)}</span>`)
+      .join('');
+
+    nextGateHTML = `
+      <div>
+        <div class="modal-section-label">Next Gate</div>
+        <div class="next-gate-row">
+          <span class="next-gate-name">${esc(prog.nextGate.label)}</span>
+          ${prog.nextGate.date ? `<span class="next-gate-date" style="color:${color}">${fmtDate(prog.nextGate.date)}</span>` : ''}
+          ${days !== null ? `<span class="next-gate-days" style="color:${color}">${daysLabel(days)}</span>` : ''}
+        </div>
+        ${chipsHTML ? `<div class="modal-criteria-wrap">${chipsHTML}</div>` : ''}
+      </div>`;
+  }
+
+  // ── Decisions section
+  const modalDecisions = prog.modalDecisions || [];
+  let decisionsHTML = '';
+  if (modalDecisions.length > 0) {
+    const blocks = modalDecisions.map(d => {
+      const optionsHTML = (d.options || [])
+        .map(o => `<div class="modal-decision-option">${esc(o)}</div>`)
+        .join('');
+      return `
+        <div class="modal-decision-block">
+          <div class="modal-decision-row">
+            <div class="modal-decision-left">
+              <span style="color:#6366f1;flex-shrink:0">◆</span>
+              <span class="modal-decision-label">${esc(d.label)}</span>
+            </div>
+            <span class="modal-decision-meta">${esc(d.owner)}${d.date ? ' · ' + esc(d.date) : ''}</span>
+          </div>
+          ${optionsHTML ? `<div class="modal-decision-options">${optionsHTML}</div>` : ''}
+        </div>`;
+    }).join('');
+
+    decisionsHTML = `
+      <div>
+        <div class="modal-section-label">Open Decisions</div>
+        ${blocks}
+      </div>`;
+  }
+
+  // ── Risks section
+  const modalRisks = prog.modalRisks || [];
+  let risksHTML = '';
+  if (modalRisks.length > 0) {
+    const blocks = modalRisks.map(risk => `
+      <div class="modal-risk-block">
+        <div class="modal-risk-row">
+          <div class="modal-risk-left">
+            <span style="color:#f59e0b;flex-shrink:0">⚠</span>
+            <span class="modal-risk-label">${esc(risk.label)}</span>
+          </div>
+          ${risk.owner ? `<span class="modal-risk-meta">${esc(risk.owner)}</span>` : ''}
+        </div>
+        ${risk.description ? `<div class="modal-risk-desc">${esc(risk.description)}</div>` : ''}
+      </div>`).join('');
+
+    risksHTML = `
+      <div>
+        <div class="modal-section-label">Risks</div>
+        ${blocks}
+      </div>`;
+  }
+
+  // ── Assemble modal content with dividers
+  const sections = [];
+  sections.push(headerHTML);
+  if (scheduleHTML) {
+    sections.push('<hr class="modal-divider" />');
+    sections.push(scheduleHTML);
+  }
+  if (nextGateHTML) {
+    sections.push('<hr class="modal-divider" />');
+    sections.push(nextGateHTML);
+  }
+  if (decisionsHTML) {
+    sections.push('<hr class="modal-divider" />');
+    sections.push(decisionsHTML);
+  }
+  if (risksHTML) {
+    sections.push('<hr class="modal-divider" />');
+    sections.push(risksHTML);
+  }
+
+  const modalContent = document.getElementById('modal-content');
+  modalContent.innerHTML = sections.join('');
+
+  // Set left border color to match program RAG
+  document.getElementById('modal').style.borderLeftColor = r.border;
+
+  // Wire close button
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+
+  // Open
+  document.getElementById('modal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close on backdrop click (outside modal)
+document.getElementById('modal-backdrop').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
 
 // ─── Initialize ───────────────────────────────────────────────────────────────
 buildNavStatus();
