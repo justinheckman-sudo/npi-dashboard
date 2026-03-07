@@ -906,6 +906,76 @@ function esc(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ─── Schedule date parsing ────────────────────────────────────────────────────
+// Milestone dates come in three formats: "Sep 2025", "May 2026" (Mon YYYY),
+// or "Dec 8", "Mar 4" (Mon D — no year). For the year-less format, default to
+// 2026, but if that lands more than 6 months past TODAY it's almost certainly
+// a 2025 date (e.g. "Dec 8" for a completed EVT milestone).
+function parseScheduleDate(str) {
+  if (!str) return null;
+  str = str.trim();
+
+  // "Sep 2025" / "May 2026" — explicit year
+  const monYear = str.match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (monYear) {
+    const d = new Date(`${monYear[1]} 1, ${monYear[2]}`);
+    return isNaN(d) ? null : d;
+  }
+
+  // "Dec 8" / "Mar 4" — infer year
+  const monDay = str.match(/^([A-Za-z]+)\s+(\d{1,2})$/);
+  if (monDay) {
+    const d2026 = new Date(`${monDay[1]} ${monDay[2]}, 2026`);
+    if (!isNaN(d2026)) {
+      const cutoff = new Date(TODAY);
+      cutoff.setMonth(cutoff.getMonth() + 6);
+      if (d2026 > cutoff) {
+        const d2025 = new Date(`${monDay[1]} ${monDay[2]}, 2025`);
+        return isNaN(d2025) ? d2026 : d2025;
+      }
+      return d2026;
+    }
+  }
+
+  return null;
+}
+
+// Given a milestone array, return the fractional position (0–1) of TODAY
+// within the equally-spaced flex columns, interpolated by actual date.
+// Column center for index i = (i + 0.5) / n
+function todayPositionInSchedule(milestones) {
+  const n = milestones.length;
+  if (n === 0) return null;
+
+  const dates = milestones.map(m => parseScheduleDate(m.date));
+  const colCenter = i => (i + 0.5) / n;
+
+  // Last milestone whose date is on or before TODAY
+  let prevIdx = -1;
+  for (let i = 0; i < n; i++) {
+    if (dates[i] && dates[i] <= TODAY) prevIdx = i;
+  }
+  // First milestone whose date is after TODAY
+  let nextIdx = -1;
+  for (let i = 0; i < n; i++) {
+    if (dates[i] && dates[i] > TODAY) { nextIdx = i; break; }
+  }
+
+  if (prevIdx === -1 && nextIdx === -1) return null; // no parseable dates
+
+  // TODAY is before all milestones
+  if (prevIdx === -1) return colCenter(nextIdx) / 2;
+
+  // TODAY is after all milestones
+  if (nextIdx === -1) return (colCenter(prevIdx) + 1) / 2;
+
+  // Interpolate between the two bracketing milestone column centers
+  const span = dates[nextIdx] - dates[prevIdx];
+  if (span <= 0) return colCenter(prevIdx);
+  const frac = (TODAY - dates[prevIdx]) / span;
+  return colCenter(prevIdx) + frac * (colCenter(nextIdx) - colCenter(prevIdx));
+}
+
 // ─── Build top nav status summary ────────────────────────────────────────────
 function buildNavStatus() {
   const counts = { 'at-risk': 0, 'watch': 0, 'on-track': 0 };
@@ -1141,14 +1211,15 @@ function openModal(progId) {
     const swTrack = buildScheduleTrack(prog.programSchedule.sw, 'SW', r.border);
     if (hwTrack || swTrack) {
       // TODAY marker: single spanning line across both HW and SW rows.
-      // .schedule-track-label is width:20px + gap:8px = 28px before the milestones area.
-      // Position = 28px + (milestones-area-width) * frac, expressed as CSS calc.
+      // Position is date-interpolated: TODAY falls proportionally between the two
+      // milestone column centers that bracket it, based on actual parsed dates.
+      // .schedule-track-label is width:20px + gap:8px = 28px before the milestones area,
+      // so the CSS calc accounts for that offset.
       let todaySpanHTML = '';
       const hwMs = prog.programSchedule.hw || [];
-      const hwCurrentIdx = hwMs.findIndex(m => m.status === 'current');
-      if (hwCurrentIdx >= 0 && hwMs.length > 0) {
-        const frac = ((hwCurrentIdx + 0.5) / hwMs.length).toFixed(4);
-        todaySpanHTML = `<div class="sched-today-marker" style="left:calc(28px + (100% - 28px) * ${frac})"></div>`;
+      const todayFrac = todayPositionInSchedule(hwMs);
+      if (todayFrac !== null) {
+        todaySpanHTML = `<div class="sched-today-marker" style="left:calc(28px + (100% - 28px) * ${todayFrac.toFixed(4)})"></div>`;
       }
 
       scheduleHTML = `
