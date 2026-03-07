@@ -1084,15 +1084,9 @@ function buildCards() {
 function buildScheduleTrack(milestones, trackLabel, statusColor) {
   if (!milestones || milestones.length === 0) return '';
 
-  const n = milestones.length;
-  const currentIdx = milestones.findIndex(m => m.status === 'current');
-  // Position today at the center of the current milestone's flex column
-  const todayPct = currentIdx >= 0 ? ((currentIdx + 0.5) / n * 100).toFixed(1) : null;
-
   const dots = milestones.map(m => {
     const isCurrent  = m.status === 'current';
     const isComplete = m.status === 'complete';
-    const isUpcoming = m.status === 'upcoming';
 
     const dotStyle = isCurrent
       ? `background:${statusColor};color:${statusColor};border:2px solid white;box-shadow:0 0 0 2px ${statusColor};`
@@ -1110,16 +1104,11 @@ function buildScheduleTrack(milestones, trackLabel, statusColor) {
       </div>`;
   }).join('');
 
-  // TODAY marker: vertical dashed line at current phase center position
-  const todayMarkerHTML = todayPct !== null
-    ? `<div class="sched-today-marker" style="left:${todayPct}%"></div>`
-    : '';
-
   return `
     <div class="schedule-track">
       <div class="schedule-track-row">
         <span class="schedule-track-label">${esc(trackLabel)}</span>
-        <div class="schedule-milestones">${dots}${todayMarkerHTML}</div>
+        <div class="schedule-milestones">${dots}</div>
       </div>
     </div>`;
 }
@@ -1151,11 +1140,25 @@ function openModal(progId) {
     const hwTrack = buildScheduleTrack(prog.programSchedule.hw, 'HW', r.border);
     const swTrack = buildScheduleTrack(prog.programSchedule.sw, 'SW', r.border);
     if (hwTrack || swTrack) {
+      // TODAY marker: single spanning line across both HW and SW rows.
+      // .schedule-track-label is width:20px + gap:8px = 28px before the milestones area.
+      // Position = 28px + (milestones-area-width) * frac, expressed as CSS calc.
+      let todaySpanHTML = '';
+      const hwMs = prog.programSchedule.hw || [];
+      const hwCurrentIdx = hwMs.findIndex(m => m.status === 'current');
+      if (hwCurrentIdx >= 0 && hwMs.length > 0) {
+        const frac = ((hwCurrentIdx + 0.5) / hwMs.length).toFixed(4);
+        todaySpanHTML = `<div class="sched-today-marker" style="left:calc(28px + (100% - 28px) * ${frac})"></div>`;
+      }
+
       scheduleHTML = `
         <div>
           <div class="modal-section-label">Program Schedule</div>
-          ${hwTrack}
-          ${swTrack}
+          <div style="position:relative">
+            ${hwTrack}
+            ${swTrack}
+            ${todaySpanHTML}
+          </div>
         </div>`;
     }
   }
