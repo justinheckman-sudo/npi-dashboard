@@ -3,253 +3,633 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NPI Program Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <title>NPI Portfolio Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Top Nav Bar ─────────────────────────────────── */
+    #nav {
+      background: #0f172a;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+    #nav-left { display: flex; align-items: baseline; gap: 8px; }
+    #nav-brand { color: white; font-weight: 800; font-size: 15px; }
+    #nav-sub   { color: #475569; font-size: 12px; }
+    #nav-right { display: flex; align-items: center; gap: 12px; }
+    .status-pill { font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+    .status-sep  { width: 1px; height: 16px; background: #1e293b; margin: 0 4px; }
+    #nav-date    { color: #334155; font-size: 11px; }
+
+    /* ── Milestone Ticker Bar ────────────────────────── */
+    #ticker {
+      background: #1e293b;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 6px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+    #ticker::-webkit-scrollbar { display: none; }
+    #ticker-label {
+      color: #475569;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+      margin-right: 6px;
+    }
+    .ticker-pill {
+      background: #0f172a;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .ticker-pill-prog  { font-weight: 700; }
+    .ticker-pill-gate  { color: #94a3b8; }
+    .ticker-pill-days  { font-weight: 700; }
+    #ticker-empty { color: #475569; font-size: 11px; }
+
+    /* ── Card Grid ───────────────────────────────────── */
+    #grid-wrap {
+      flex: 1;
+      padding: 14px;
+    }
+    #card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 1099px) {
+      #card-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 699px) {
+      #card-grid { grid-template-columns: 1fr; }
+      #grid-wrap { padding: 10px; }
+    }
+
+    /* ── Program Card ────────────────────────────────── */
+    .card {
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      border-left-width: 4px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      padding: 14px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    @media (max-width: 699px) {
+      .card { padding: 10px 12px; }
+    }
+
+    /* Card header */
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-header-left { display: flex; align-items: baseline; gap: 7px; }
+    .card-name     { font-weight: 800; font-size: 15px; color: #0f172a; }
+    .card-subtitle { font-size: 11px; color: #94a3b8; }
+    .card-header-right { display: flex; align-items: center; gap: 5px; }
+    .badge-phase {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .badge-rag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    /* Timeline strip */
+    .timeline-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .timeline-bar-outer {
+      position: relative;
+      height: 5px;
+      background: #e2e8f0;
+      border-radius: 99px;
+    }
+    .timeline-bar-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      border-radius: 99px;
+    }
+    .timeline-today {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 2px solid white;
+      box-shadow: 0 0 0 1px #0f172a;
+      top: 50%; transform: translate(-50%, -50%);
+    }
+    .timeline-gate {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 2px solid white;
+      top: 50%; transform: translate(-50%, -50%);
+    }
+    .timeline-dashed {
+      height: 5px;
+      border-radius: 99px;
+      border: 1px dashed #cbd5e1;
+      background: transparent;
+    }
+    .timeline-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #94a3b8;
+    }
+    .timeline-right-label { font-weight: 600; }
+    .timeline-pending { font-size: 10px; color: #94a3b8; font-style: italic; }
+
+    /* Next gate section */
+    .next-gate-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .next-gate-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .next-gate-name  { font-size: 17px; font-weight: 800; color: #0f172a; }
+    .next-gate-date  { font-size: 13px; font-weight: 700; }
+    .next-gate-days  { font-size: 10px; font-weight: 600; margin-left: auto; }
+    .criteria-wrap   { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+    .criteria-chip {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 3px;
+      color: #475569;
+    }
+    .next-gate-empty { font-size: 12px; color: #94a3b8; font-style: italic; }
+
+    /* Divider */
+    .card-divider { border: none; border-top: 1px solid #f1f5f9; }
+
+    /* Risks + Decisions */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .risk-row, .decision-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .risk-row:last-child, .decision-row:last-child { margin-bottom: 0; }
+    .risk-icon     { color: #f59e0b; flex-shrink: 0; }
+    .decision-icon { color: #6366f1; flex-shrink: 0; }
+    .item-label  { font-size: 11px; color: #374151; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .item-meta   { font-size: 10px; color: #94a3b8; white-space: nowrap; flex-shrink: 0; }
+    .risks-section, .decisions-section { display: flex; flex-direction: column; }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen p-6">
+<body>
 
-  <!-- Page header -->
-  <header class="mb-6">
-    <h1 class="text-xl font-bold text-gray-900">NPI Program Dashboard</h1>
-    <p class="text-sm text-gray-500">Week of March 2, 2026</p>
-  </header>
+<!-- ── Top Nav Bar ─────────────────────────────────────────────── -->
+<nav id="nav">
+  <div id="nav-left">
+    <span id="nav-brand">Block HW</span>
+    <span id="nav-sub">NPI Portfolio</span>
+  </div>
+  <div id="nav-right">
+    <span id="status-summary"><!-- injected by JS --></span>
+    <div class="status-sep"></div>
+    <span id="nav-date"><!-- injected by JS --></span>
+  </div>
+</nav>
 
-  <!-- Card grid: 1 col mobile, 2 col tablet, 3 col desktop -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- ── Milestone Ticker Bar ───────────────────────────────────── -->
+<div id="ticker">
+  <span id="ticker-label">NEXT 30 DAYS</span>
+  <!-- injected by JS -->
+</div>
 
-    <!-- ─── W3 Hardware Wallet — DVT — 🔴 AT RISK ─── -->
-    <div class="border-l-4 border-blue-500 rounded-r-lg bg-white shadow-sm overflow-hidden flex flex-col">
+<!-- ── Card Grid ─────────────────────────────────────────────── -->
+<div id="grid-wrap">
+  <div id="card-grid">
+    <!-- injected by JS -->
+  </div>
+</div>
 
-      <!-- Section 1: Header + RAG + micro-timeline -->
-      <div class="px-4 pt-4 pb-3 border-b border-gray-100">
-        <!-- Name + phase badge + RAG -->
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <span class="font-semibold text-gray-900 text-sm">W3 Bitkey Wallet</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-medium">DVT</span>
+<script>
+// ─── Data ─────────────────────────────────────────────────────────────────────
+// Status is derived by the UI. programs.yaml is the canonical data source and
+// intentionally omits status/rag fields (forbidden by DATA-02 schema rule).
+// Status embedded here reflects current program knowledge as of 2026-03-07.
+
+const TODAY = new Date('2026-03-07');
+
+const PROGRAMS = [
+  {
+    id: 'w3',
+    name: 'W3',
+    subtitle: 'Bitkey Wallet',
+    phase: 'DVT',
+    status: 'at-risk',
+    lastGate: { label: 'DVT BRR', date: '2026-02-23' },
+    nextGate: {
+      label: 'Ok2Vegas',
+      date: '2026-03-16',
+      criteria: ['Drop test GO', 'NFC spec signed off', 'ATE dry run clean']
+    },
+    risks: [
+      { label: 'Zero-iteration DVT→PVT', owner: 'J. Heckman' },
+      { label: 'SW Day-1 readiness', owner: 'F. Peprah' }
+    ],
+    decisions: [
+      { label: 'Housing down-select', owner: 'N. George', date: 'Mar 14' },
+      { label: 'NFC good-enough spec', owner: 'D. Wilson', date: 'Mar 7' }
+    ]
+  },
+  {
+    id: 'r2-b4',
+    name: 'R2-B4',
+    subtitle: 'Mining Node',
+    phase: 'EVT',
+    status: 'watch',
+    lastGate: { label: 'EVT Kickoff', date: '2026-02-10' },
+    nextGate: {
+      label: 'EVT BRR',
+      date: '2026-03-21',
+      criteria: ['Thermal validation', 'Power budget confirmed']
+    },
+    risks: [
+      { label: 'Hashboard yield below target', owner: 'T. Nguyen' }
+    ],
+    decisions: [
+      { label: 'Cooling architecture selection', owner: 'A. Patel', date: 'Mar 20' }
+    ]
+  },
+  {
+    id: 'tags',
+    name: '$Tags',
+    subtitle: 'Tagging Platform',
+    phase: 'In Design',
+    status: 'on-track',
+    lastGate: null,
+    nextGate: {
+      label: 'Design Review',
+      date: '2026-04-05',
+      criteria: ['ID concept approved', 'BOM draft complete']
+    },
+    risks: [],
+    decisions: []
+  },
+  {
+    id: 'ct1',
+    name: 'CT1',
+    subtitle: 'Crypto Terminal',
+    phase: 'In Design',
+    status: 'watch',
+    lastGate: null,
+    nextGate: {
+      label: 'Concept Freeze',
+      date: '2026-04-12',
+      criteria: ['Form factor locked', 'Display spec confirmed']
+    },
+    risks: [
+      { label: 'Display supply constraints', owner: 'M. Chen' }
+    ],
+    decisions: []
+  },
+  {
+    id: 'k1',
+    name: 'K1',
+    subtitle: 'Security Key',
+    phase: 'EVT',
+    status: 'on-track',
+    lastGate: { label: 'EVT Input', date: '2026-02-28' },
+    nextGate: {
+      label: 'EVT FAI',
+      date: '2026-03-28',
+      criteria: ['Mechanical fit check', 'PCB bring-up complete']
+    },
+    risks: [],
+    decisions: [
+      { label: 'Antenna placement strategy', owner: 'S. Kim', date: 'Mar 25' }
+    ]
+  },
+  {
+    id: 'x2c',
+    name: 'X2c',
+    subtitle: 'Accessories',
+    phase: 'In Design',
+    status: 'watch',
+    lastGate: null,
+    nextGate: null,
+    risks: [],
+    decisions: []
+  }
+];
+
+// ─── Color system ─────────────────────────────────────────────────────────────
+const RAG = {
+  'at-risk': {
+    border:    '#dc2626',
+    labelBg:   '#fef2f2',
+    labelText: '#dc2626',
+    trackFill: '#fca5a5',
+    navDot:    '#f87171',
+    label:     'AT RISK'
+  },
+  'watch': {
+    border:    '#d97706',
+    labelBg:   '#fffbeb',
+    labelText: '#d97706',
+    trackFill: '#fcd34d',
+    navDot:    '#fbbf24',
+    label:     'WATCH'
+  },
+  'on-track': {
+    border:    '#059669',
+    labelBg:   '#f0fdf4',
+    labelText: '#059669',
+    trackFill: '#6ee7b7',
+    navDot:    '#34d399',
+    label:     'ON TRACK'
+  }
+};
+
+const PHASE_BADGE = {
+  'DVT':       { bg: '#dbeafe', text: '#1d4ed8' },
+  'EVT':       { bg: '#dcfce7', text: '#166534' },
+  'In Design': { bg: '#f1f5f9', text: '#475569' },
+  'PRV1':      { bg: '#ede9fe', text: '#5b21b6' },
+  'PVT':       { bg: '#fef3c7', text: '#92400e' }
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function parseDate(str) {
+  if (!str) return null;
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function daysDiff(dateStr) {
+  // Positive = future, negative = past
+  const d = parseDate(dateStr);
+  if (!d) return null;
+  const ms = d - TODAY;
+  return Math.round(ms / 86400000);
+}
+
+function fmtDate(dateStr) {
+  const d = parseDate(dateStr);
+  if (!d) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function urgencyColor(days) {
+  if (days === null)  return '#64748b';
+  if (days < 0)       return '#dc2626';  // overdue
+  if (days <= 5)      return '#d97706';
+  if (days <= 14)     return '#6366f1';
+  return '#64748b';
+}
+
+function daysLabel(days) {
+  if (days === null) return '';
+  if (days === 0)    return 'today';
+  if (days < 0)      return `${Math.abs(days)}d overdue`;
+  return `${days}d`;
+}
+
+function timelinePct(lastDate, nextDate) {
+  const l = parseDate(lastDate);
+  const n = parseDate(nextDate);
+  if (!l || !n) return null;
+  const total   = n - l;
+  const elapsed = TODAY - l;
+  if (total <= 0) return null;
+  return Math.min(Math.max((elapsed / total) * 100, 2), 96);
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ─── Build top nav status summary ────────────────────────────────────────────
+function buildNavStatus() {
+  const counts = { 'at-risk': 0, 'watch': 0, 'on-track': 0 };
+  PROGRAMS.forEach(p => { if (counts[p.status] !== undefined) counts[p.status]++; });
+
+  const parts = [];
+  if (counts['at-risk'] > 0)  parts.push(`<span class="status-pill" style="color:${RAG['at-risk'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['at-risk']} AT RISK</span></span>`);
+  if (counts['watch'] > 0)    parts.push(`<span class="status-pill" style="color:${RAG['watch'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['watch']} WATCH</span></span>`);
+  if (counts['on-track'] > 0) parts.push(`<span class="status-pill" style="color:${RAG['on-track'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['on-track']} ON TRACK</span></span>`);
+
+  document.getElementById('status-summary').innerHTML = parts.join('<span style="color:#334155;font-size:10px;padding:0 4px">·</span>');
+
+  const dateStr = TODAY.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('nav-date').textContent = dateStr;
+}
+
+// ─── Build milestone ticker ───────────────────────────────────────────────────
+function buildTicker() {
+  const ticker = document.getElementById('ticker');
+  const pills = [];
+
+  PROGRAMS.forEach(prog => {
+    if (!prog.nextGate || !prog.nextGate.date) return;
+    const days = daysDiff(prog.nextGate.date);
+    if (days === null || days < 0 || days > 30) return;
+    pills.push({ prog, days, gate: prog.nextGate.label, date: prog.nextGate.date });
+  });
+
+  // Sort ascending by date
+  pills.sort((a, b) => a.days - b.days);
+
+  if (pills.length === 0) {
+    ticker.insertAdjacentHTML('beforeend', '<span id="ticker-empty">No milestones in window</span>');
+    return;
+  }
+
+  const rag = RAG;
+  pills.forEach(({ prog, days, gate }) => {
+    const r = rag[prog.status];
+    const statusColor = r.border;
+    const borderColor = statusColor + '33'; // 20% opacity hex approx
+    const daysColor = days <= 7 ? '#fbbf24' : '#6366f1';
+    const daysText = days === 0 ? 'today' : `+${days}d`;
+
+    const pill = document.createElement('span');
+    pill.className = 'ticker-pill';
+    pill.style.border = `1px solid ${borderColor}`;
+    pill.innerHTML = `<span class="ticker-pill-prog" style="color:${statusColor}">${esc(prog.name)}</span><span class="ticker-pill-gate">${esc(gate)}</span><span class="ticker-pill-days" style="color:${daysColor}">${daysText}</span>`;
+    ticker.appendChild(pill);
+  });
+}
+
+// ─── Build cards ─────────────────────────────────────────────────────────────
+function buildCards() {
+  const grid = document.getElementById('card-grid');
+
+  PROGRAMS.forEach(prog => {
+    const r = RAG[prog.status] || RAG['watch'];
+    const ph = PHASE_BADGE[prog.phase] || PHASE_BADGE['In Design'];
+
+    // ── Header
+    const headerHTML = `
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-name">${esc(prog.name)}</span>
+          ${prog.subtitle ? `<span class="card-subtitle">${esc(prog.subtitle)}</span>` : ''}
+        </div>
+        <div class="card-header-right">
+          <span class="badge-phase" style="background:${ph.bg};color:${ph.text}">${esc(prog.phase)}</span>
+          <span class="badge-rag" style="background:${r.labelBg};color:${r.labelText}">${r.label}</span>
+        </div>
+      </div>`;
+
+    // ── Timeline strip
+    let timelineHTML;
+    const hasLast = prog.lastGate && prog.lastGate.date;
+    const hasNext = prog.nextGate && prog.nextGate.date;
+
+    if (hasLast && hasNext) {
+      const pct = timelinePct(prog.lastGate.date, prog.nextGate.date);
+      const todayPct = pct !== null ? pct : 50;
+      // Gate marker at right end (96% to avoid overflow)
+      const gateLeft = Math.min(Math.max(todayPct + 8, 90), 96);
+
+      const nextDays = daysDiff(prog.nextGate.date);
+      const nextColor = urgencyColor(nextDays);
+
+      timelineHTML = `
+        <div class="timeline-wrap">
+          <div class="timeline-bar-outer">
+            <div class="timeline-bar-fill" style="width:${todayPct}%;background:${r.trackFill}"></div>
+            <div class="timeline-today" style="left:${todayPct}%"></div>
+            <div class="timeline-gate" style="left:${gateLeft}%;background:${r.border}"></div>
           </div>
-          <span class="flex items-center gap-1 text-xs font-semibold text-red-600">
-            <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
-            AT RISK
-          </span>
-        </div>
-        <!-- Micro-timeline: Last gate — TODAY — Next gate -->
-        <!-- viewBox: 0 0 320 28; today at x=120, last gate at x=20, next gate at x=260 -->
-        <svg viewBox="0 0 320 28" class="w-full" xmlns="http://www.w3.org/2000/svg"
-             style="font-family: ui-sans-serif, system-ui, sans-serif">
-          <!-- Baseline -->
-          <line x1="20" y1="16" x2="300" y2="16" stroke="#e5e7eb" stroke-width="1.5"/>
-          <!-- Last gate dot: DVT BRR Feb 23 -->
-          <circle cx="20" cy="16" r="4" fill="#9ca3af"/>
-          <text x="20" y="27" font-size="8" text-anchor="middle" fill="#9ca3af">DVT BRR</text>
-          <text x="20" y="9" font-size="7" text-anchor="middle" fill="#9ca3af">Feb 23</text>
-          <!-- TODAY marker (dashed vertical) -->
-          <line x1="120" y1="6" x2="120" y2="26" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="3 2"/>
-          <text x="120" y="7" font-size="7" text-anchor="middle" fill="#6b7280">TODAY</text>
-          <!-- Next gate diamond: Ok2Vegas Mar 16 -->
-          <polygon points="260,11 266,16 260,21 254,16" fill="#3b82f6"/>
-          <text x="260" y="27" font-size="8" text-anchor="middle" fill="#3b82f6">Ok2Vegas</text>
-          <text x="260" y="9" font-size="7" text-anchor="middle" fill="#3b82f6">Mar 16</text>
-        </svg>
-      </div>
+          <div class="timeline-labels">
+            <span>${esc(prog.lastGate.label)} · ${fmtDate(prog.lastGate.date)}</span>
+            <span class="timeline-right-label" style="color:${nextColor}">${esc(prog.nextGate.label)} · ${fmtDate(prog.nextGate.date)}</span>
+          </div>
+        </div>`;
+    } else {
+      timelineHTML = `
+        <div class="timeline-wrap">
+          <div class="timeline-dashed"></div>
+          <span class="timeline-pending">Timeline pending</span>
+        </div>`;
+    }
 
-      <!-- Section 2: Next Gate -->
-      <div class="px-4 py-3 border-b border-gray-100 bg-blue-50">
-        <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Next Gate</div>
-        <div class="flex items-baseline gap-2">
-          <span class="text-lg font-bold text-gray-900">Ok2Vegas</span>
-          <span class="text-lg font-bold text-blue-700">Mar 16</span>
-        </div>
-        <div class="text-xs text-gray-600 mt-1 truncate">Drop test GO &middot; NFC spec signed off &middot; ATE dry run clean</div>
-      </div>
+    // ── Next gate section
+    let nextGateHTML;
+    if (prog.nextGate && prog.nextGate.label) {
+      const days = daysDiff(prog.nextGate.date);
+      const color = urgencyColor(days);
+      const chipsHTML = (prog.nextGate.criteria || [])
+        .map(c => `<span class="criteria-chip">${esc(c)}</span>`)
+        .join('');
 
-      <!-- Section 3: Risks + Decisions -->
-      <div class="px-4 py-3 flex flex-col gap-2">
+      nextGateHTML = `
         <div>
-          <div class="flex items-center gap-1 text-xs text-gray-500 uppercase tracking-wide mb-1">
-            <span>⚠</span><span>Top Risks</span>
+          <div class="next-gate-label">Next Gate</div>
+          <div class="next-gate-row">
+            <span class="next-gate-name">${esc(prog.nextGate.label)}</span>
+            ${prog.nextGate.date ? `<span class="next-gate-date" style="color:${color}">${fmtDate(prog.nextGate.date)}</span>` : ''}
+            ${days !== null ? `<span class="next-gate-days" style="color:${color}">${daysLabel(days)}</span>` : ''}
           </div>
-          <div class="text-xs text-gray-700 truncate">Zero-iteration DVT→PVT &mdash; <span class="text-gray-500">J. Heckman</span></div>
-          <div class="text-xs text-gray-700 truncate">SW Day-1 readiness &mdash; <span class="text-gray-500">F. Peprah</span></div>
-        </div>
-        <div>
-          <div class="flex items-center gap-1 text-xs text-gray-500 uppercase tracking-wide mb-1">
-            <span>🔔</span><span>Decisions</span>
-          </div>
-          <div class="text-xs text-gray-700 truncate">Housing down-select &mdash; <span class="text-gray-500">N. George &nbsp;Mar 14</span></div>
-          <div class="text-xs text-gray-700 truncate">NFC good-enough spec &mdash; <span class="text-gray-500">D. Wilson &nbsp;Mar 7</span></div>
-        </div>
-      </div>
+          ${chipsHTML ? `<div class="criteria-wrap">${chipsHTML}</div>` : ''}
+        </div>`;
+    } else {
+      nextGateHTML = `<div><span class="next-gate-empty">Awaiting update</span></div>`;
+    }
 
-    </div>
+    // ── Risks (max 2)
+    const visibleRisks = (prog.risks || []).slice(0, 2);
+    let risksHTML = '';
+    if (visibleRisks.length > 0) {
+      const rows = visibleRisks.map(risk => `
+        <div class="risk-row">
+          <span class="risk-icon">⚠</span>
+          <span class="item-label">${esc(risk.label)}</span>
+          <span class="item-meta">${esc(risk.owner)}</span>
+        </div>`).join('');
+      risksHTML = `<div class="risks-section"><div class="section-label">Risks</div>${rows}</div>`;
+    }
 
-    <!-- ─── R2-B4 Mining — EVT — 🟡 WATCH ─── -->
-    <div class="border-l-4 border-teal-500 rounded-r-lg bg-white shadow-sm overflow-hidden flex flex-col">
+    // ── Decisions (max 2)
+    const visibleDecisions = (prog.decisions || []).slice(0, 2);
+    let decisionsHTML = '';
+    if (visibleDecisions.length > 0) {
+      const rows = visibleDecisions.map(d => `
+        <div class="decision-row">
+          <span class="decision-icon">◆</span>
+          <span class="item-label">${esc(d.label)}</span>
+          <span class="item-meta">${esc(d.owner)}${d.date ? ' · ' + esc(d.date) : ''}</span>
+        </div>`).join('');
+      decisionsHTML = `<div class="decisions-section"><div class="section-label">Decisions</div>${rows}</div>`;
+    }
 
-      <!-- Section 1: Header + RAG + micro-timeline -->
-      <div class="px-4 pt-4 pb-3 border-b border-gray-100">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <span class="font-semibold text-gray-900 text-sm">R2-B4 Mining</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 font-medium">EVT</span>
-          </div>
-          <span class="flex items-center gap-1 text-xs font-semibold text-amber-600">
-            <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-            WATCH
-          </span>
-        </div>
-        <!-- Micro-timeline: awaiting update -->
-        <div class="h-7 flex items-center">
-          <span class="text-xs text-gray-400 italic">Timeline data awaiting update</span>
-        </div>
-      </div>
+    // ── Divider + combined bottom section
+    const hasRisksOrDecisions = visibleRisks.length > 0 || visibleDecisions.length > 0;
+    const dividerHTML = hasRisksOrDecisions ? '<hr class="card-divider" />' : '';
+    const bottomHTML = hasRisksOrDecisions
+      ? `${dividerHTML}${risksHTML}${decisionsHTML}`
+      : '';
 
-      <!-- Section 2: Next Gate (empty state) -->
-      <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-        <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Next Gate</div>
-        <div class="text-sm italic text-gray-400">Awaiting update</div>
-      </div>
+    // ── Assemble card
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.borderLeftColor = r.border;
+    card.innerHTML = headerHTML + timelineHTML + nextGateHTML + bottomHTML;
+    grid.appendChild(card);
+  });
+}
 
-      <!-- Section 3: Risks + Decisions (empty state) -->
-      <div class="px-4 py-3">
-        <div class="text-xs italic text-gray-400">No risks or decisions on file</div>
-      </div>
-
-    </div>
-
-    <!-- ─── $Tags — In Design — 🟡 WATCH ─── -->
-    <div class="border-l-4 border-gray-400 rounded-r-lg bg-white shadow-sm overflow-hidden flex flex-col">
-
-      <!-- Section 1: Header + RAG + micro-timeline -->
-      <div class="px-4 pt-4 pb-3 border-b border-gray-100">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <span class="font-semibold text-gray-900 text-sm">$Tags</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">In Design</span>
-          </div>
-          <span class="flex items-center gap-1 text-xs font-semibold text-amber-600">
-            <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-            WATCH
-          </span>
-        </div>
-        <div class="h-7 flex items-center">
-          <span class="text-xs text-gray-400 italic">Timeline data awaiting update</span>
-        </div>
-      </div>
-
-      <!-- Section 2: Next Gate (empty state) -->
-      <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-        <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Next Gate</div>
-        <div class="text-sm italic text-gray-400">Awaiting update</div>
-      </div>
-
-      <!-- Section 3: Risks + Decisions (empty state) -->
-      <div class="px-4 py-3">
-        <div class="text-xs italic text-gray-400">No risks or decisions on file</div>
-      </div>
-
-    </div>
-
-    <!-- ─── CT1 — In Design — 🟡 WATCH ─── -->
-    <div class="border-l-4 border-gray-400 rounded-r-lg bg-white shadow-sm overflow-hidden flex flex-col">
-
-      <!-- Section 1: Header + RAG + micro-timeline -->
-      <div class="px-4 pt-4 pb-3 border-b border-gray-100">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <span class="font-semibold text-gray-900 text-sm">CT1</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">In Design</span>
-          </div>
-          <span class="flex items-center gap-1 text-xs font-semibold text-amber-600">
-            <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-            WATCH
-          </span>
-        </div>
-        <div class="h-7 flex items-center">
-          <span class="text-xs text-gray-400 italic">Timeline data awaiting update</span>
-        </div>
-      </div>
-
-      <!-- Section 2: Next Gate (empty state) -->
-      <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-        <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Next Gate</div>
-        <div class="text-sm italic text-gray-400">Awaiting update</div>
-      </div>
-
-      <!-- Section 3: Risks + Decisions (empty state) -->
-      <div class="px-4 py-3">
-        <div class="text-xs italic text-gray-400">No risks or decisions on file</div>
-      </div>
-
-    </div>
-
-    <!-- ─── K1 — EVT — 🟡 WATCH ─── -->
-    <div class="border-l-4 border-teal-500 rounded-r-lg bg-white shadow-sm overflow-hidden flex flex-col">
-
-      <!-- Section 1: Header + RAG + micro-timeline -->
-      <div class="px-4 pt-4 pb-3 border-b border-gray-100">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <span class="font-semibold text-gray-900 text-sm">K1</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 font-medium">EVT</span>
-          </div>
-          <span class="flex items-center gap-1 text-xs font-semibold text-amber-600">
-            <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-            WATCH
-          </span>
-        </div>
-        <div class="h-7 flex items-center">
-          <span class="text-xs text-gray-400 italic">Timeline data awaiting update</span>
-        </div>
-      </div>
-
-      <!-- Section 2: Next Gate (empty state) -->
-      <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-        <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Next Gate</div>
-        <div class="text-sm italic text-gray-400">Awaiting update</div>
-      </div>
-
-      <!-- Section 3: Risks + Decisions (empty state) -->
-      <div class="px-4 py-3">
-        <div class="text-xs italic text-gray-400">No risks or decisions on file</div>
-      </div>
-
-    </div>
-
-    <!-- ─── X2c — In Design — 🟡 WATCH ─── -->
-    <div class="border-l-4 border-gray-400 rounded-r-lg bg-white shadow-sm overflow-hidden flex flex-col">
-
-      <!-- Section 1: Header + RAG + micro-timeline -->
-      <div class="px-4 pt-4 pb-3 border-b border-gray-100">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <span class="font-semibold text-gray-900 text-sm">X2c</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">In Design</span>
-          </div>
-          <span class="flex items-center gap-1 text-xs font-semibold text-amber-600">
-            <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-            WATCH
-          </span>
-        </div>
-        <div class="h-7 flex items-center">
-          <span class="text-xs text-gray-400 italic">Timeline data awaiting update</span>
-        </div>
-      </div>
-
-      <!-- Section 2: Next Gate (empty state) -->
-      <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-        <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Next Gate</div>
-        <div class="text-sm italic text-gray-400">Awaiting update</div>
-      </div>
-
-      <!-- Section 3: Risks + Decisions (empty state) -->
-      <div class="px-4 py-3">
-        <div class="text-xs italic text-gray-400">No risks or decisions on file</div>
-      </div>
-
-    </div>
-
-  </div><!-- end card grid -->
-
+// ─── Initialize ───────────────────────────────────────────────────────────────
+buildNavStatus();
+buildTicker();
+buildCards();
+</script>
 </body>
 </html>
