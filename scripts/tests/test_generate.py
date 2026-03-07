@@ -27,14 +27,19 @@ class TestGeneratorAbort(unittest.TestCase):
             shutil.copy(REPO_ROOT / "validate_programs.py", tmpdir / "validate_programs.py")
             if (REPO_ROOT / "templates").exists():
                 shutil.copytree(REPO_ROOT / "templates", tmpdir / "templates")
-            # Poison the YAML: inject forbidden 'rag' key into first program
+            # Poison the YAML: inject forbidden 'rag' key into first program.
+            # The YAML uses list items ("  - id:"), so we inject after the first
+            # "- id:" occurrence by appending to that line.
             yaml_path = tmpdir / "data" / "programs.yaml"
             content = yaml_path.read_text()
-            poisoned = content.replace("  id:", "  rag: red\n  id:", 1)
+            # Replace "- id: w3" with "- id: w3\n    rag: red" to inject forbidden key
+            poisoned = content.replace("  - id:", "  - rag: red\n    id:", 1)
             yaml_path.write_text(poisoned)
-            # Run generator from temp dir
+            # Run generator, pointing it at the poisoned YAML in tmpdir
             result = subprocess.run(
-                [sys.executable, str(REPO_ROOT / "scripts" / "generate.py")],
+                [sys.executable, str(REPO_ROOT / "scripts" / "generate.py"),
+                 "--yaml", str(yaml_path),
+                 "--output", str(tmpdir / "index.html")],
                 capture_output=True, text=True, cwd=tmpdir
             )
             self.assertNotEqual(result.returncode, 0, "Generator should exit non-zero on invalid YAML")
