@@ -599,218 +599,232 @@ const PROGRAMS = [
   {
     id: 'r2-b4',
     name: 'R2-B4',
-    subtitle: 'Mining Node',
-    phase: 'EVT',
+    subtitle: 'Mining Rig + Hashboard',
+    phase: 'Proto',
     status: 'watch',
-    lastGate: { label: 'EVT Kickoff', date: '2026-02-10' },
+    lastGate: { label: 'B4 FW Update', date: '2026-03-06' },
     nextGate: {
-      label: 'EVT BRR',
-      date: '2026-03-21',
-      criteria: ['Thermal validation', 'Power budget confirmed']
+      label: 'Proto2 Start',
+      date: '2026-03-10',
+      criteria: ['MC3 delivery complete (40% in)', 'PCBA test fixture cleared customs']
     },
     risks: [
-      { label: 'Hashboard yield below target', owner: 'T. Nguyen' }
+      { label: 'MC3 delivery 40% received', owner: '[NEED UPDATE]' },
+      { label: 'PCBA fixture in Oakland customs', owner: '[NEED UPDATE]' }
     ],
     decisions: [
-      { label: 'Cooling architecture selection', owner: 'A. Patel', date: 'Mar 20' }
+      { label: 'ASIC allocation B3→B4 transition', owner: '[NEED UPDATE]', date: 'TBD' }
     ],
     programSchedule: {
       hw: [
-        { label: 'Concept',  date: 'Jan 2026', status: 'complete' },
-        { label: 'EVT',      date: 'Feb 10',   status: 'current'  },
-        { label: 'DVT',      date: 'May 2026', status: 'upcoming' },
-        { label: 'PVT',      date: 'Aug 2026', status: 'upcoming' },
+        { label: 'B4 FW Update', date: 'Mar 6',   status: 'complete' },
+        { label: 'Proto2 Start', date: 'Mar 10',  status: 'upcoming' },
+        { label: 'Ops MP1',      date: 'Apr wk1', status: 'upcoming' },
+        { label: 'Ok2Ship',      date: 'May wk1', status: 'upcoming' },
       ],
       sw: [
-        { label: 'FW Alpha', date: 'Mar 2026', status: 'upcoming' },
-        { label: 'FW Beta',  date: 'Jun 2026', status: 'upcoming' },
+        { label: 'FW Run-in',  date: 'Mar 10',  status: 'upcoming' },
       ]
     },
     modalDecisions: [
       {
-        label: 'Cooling architecture selection',
-        owner: 'A. Patel',
-        date: 'Mar 20',
+        label: 'ASIC allocation B3→B4 transition',
+        owner: '[NEED UPDATE]',
+        date: 'TBD',
         options: [
-          'Active liquid cooling: higher performance, more complex integration',
-          'Air-cooled immersion: lower cost, proven at scale'
+          'Execution timing dependent on MC2 availability and contract alignment',
+          'New FXSJ-adjacent site leased Apr ($68k/mo) to support US MP in June'
         ]
       }
     ],
     modalRisks: [
       {
-        label: 'Hashboard yield below target',
-        owner: 'T. Nguyen',
-        description: 'EVT hashboard FPY trending below 85% target; root cause investigation ongoing'
+        label: 'MC3 delivery 40% received',
+        owner: '[NEED UPDATE]',
+        description: 'Final MC3 delivery throttling Proto2 start; close daily tracking on delivery'
       },
       {
-        label: 'Thermal validation timeline',
-        owner: 'A. Patel',
-        description: 'Cooling architecture decision gating thermal test plan; any slip pushes BRR'
+        label: 'PCBA test fixture in Oakland customs',
+        owner: '[NEED UPDATE]',
+        description: 'PCBA test fixture held in Oakland customs; arrival gating Proto2 build start on 3/10'
       }
     ]
   },
   {
     id: 'tags',
     name: '$Tags',
-    subtitle: 'Tagging Platform',
-    phase: 'In Design',
+    subtitle: 'Cash App Accessories',
+    phase: 'T1 Trials',
     status: 'on-track',
     lastGate: null,
     nextGate: {
-      label: 'Design Review',
-      date: '2026-04-05',
-      criteria: ['ID concept approved', 'BOM draft complete']
-    },
-    risks: [],
-    decisions: [],
-    programSchedule: {
-      hw: [
-        { label: 'Concept',   date: 'Mar 2026', status: 'current'  },
-        { label: 'EVT',       date: 'Jul 2026', status: 'upcoming' },
-        { label: 'DVT',       date: 'Nov 2026', status: 'upcoming' },
-      ],
-      sw: [
-        { label: 'FW Spec',   date: 'May 2026', status: 'upcoming' },
-        { label: 'FW Alpha',  date: 'Sep 2026', status: 'upcoming' },
-      ]
-    },
-    modalDecisions: [
-      {
-        label: 'Form factor selection',
-        owner: 'ID Team',
-        date: 'Apr 5',
-        options: [
-          'Card form factor: wallet-compatible, existing manufacturing tooling',
-          'Fob form factor: higher visibility, new tooling required'
-        ]
-      }
-    ],
-    modalRisks: []
-  },
-  {
-    id: 'ct1',
-    name: 'CT1',
-    subtitle: 'Crypto Terminal',
-    phase: 'In Design',
-    status: 'watch',
-    lastGate: null,
-    nextGate: {
-      label: 'Concept Freeze',
-      date: '2026-04-12',
-      criteria: ['Form factor locked', 'Display spec confirmed']
+      label: 'CMF Lock',
+      date: '2026-03-09',
+      criteria: ['Wand resin update validated', 'Mini Card T1 trial complete']
     },
     risks: [
-      { label: 'Display supply constraints', owner: 'M. Chen' }
+      { label: 'SW staffing post-RIF', owner: '[NEED UPDATE]' }
     ],
-    decisions: [],
+    decisions: [
+      { label: 'Fidesmo integration approach', owner: '[NEED UPDATE]', date: 'TBD' }
+    ],
     programSchedule: {
       hw: [
-        { label: 'Concept',   date: 'Feb 2026', status: 'complete' },
-        { label: 'Design',    date: 'Apr 12',   status: 'current'  },
-        { label: 'EVT',       date: 'Aug 2026', status: 'upcoming' },
-        { label: 'DVT',       date: 'Dec 2026', status: 'upcoming' },
+        { label: 'T1 Trials',    date: 'Mar wk1',  status: 'current'  },
+        { label: 'CMF Lock',     date: 'Mar 9',    status: 'upcoming' },
+        { label: 'T1 Assy Wand', date: 'Mar wk2',  status: 'upcoming' },
+        { label: 'T2 Assy Wand', date: 'Apr wk1',  status: 'upcoming' },
+        { label: 'Ok2Ramp',      date: 'Apr 23',   status: 'upcoming' },
       ],
       sw: [
-        { label: 'OS Selection', date: 'May 2026', status: 'upcoming' },
-        { label: 'FW Alpha',     date: 'Oct 2026', status: 'upcoming' },
+        { label: 'Beta Assy',       date: 'Mar wk3', status: 'upcoming' },
+        { label: 'Fidesmo Integ.',  date: 'TBD',     status: 'upcoming' },
       ]
     },
     modalDecisions: [
       {
-        label: 'Display vendor selection',
-        owner: 'M. Chen',
-        date: 'Apr 12',
+        label: 'Fidesmo integration approach',
+        owner: '[NEED UPDATE]',
+        date: 'TBD',
         options: [
-          'Primary vendor: proven supply chain, 6-week lead time',
-          'Alternative vendor: better pricing, 12-week lead time, unqualified'
+          'Server and client teams working on Fidesmo integration to de-risk provisioning'
         ]
       }
     ],
     modalRisks: [
       {
-        label: 'Display supply constraints',
-        owner: 'M. Chen',
-        description: 'Preferred display vendor quoting 12-week lead time; may gate EVT input date'
+        label: 'SW staffing post-RIF',
+        owner: '[NEED UPDATE]',
+        description: 'Updated SW staffing post-RIF; resourcing impact on Fidesmo integration timeline under assessment'
       }
     ]
   },
   {
-    id: 'k1',
-    name: 'K1',
-    subtitle: 'Security Key',
-    phase: 'EVT',
+    id: 'ct1',
+    name: 'CT1',
+    subtitle: 'Mining Container',
+    phase: 'Concept',
     status: 'on-track',
-    lastGate: { label: 'EVT Input', date: '2026-02-28' },
-    nextGate: {
-      label: 'EVT FAI',
-      date: '2026-03-28',
-      criteria: ['Mechanical fit check', 'PCB bring-up complete']
-    },
-    risks: [],
-    decisions: [
-      { label: 'Antenna placement strategy', owner: 'S. Kim', date: 'Mar 25' }
-    ],
-    programSchedule: {
-      hw: [
-        { label: 'EVT Input', date: 'Feb 28',   status: 'complete' },
-        { label: 'EVT FAI',   date: 'Mar 28',   status: 'current'  },
-        { label: 'DVT',       date: 'Jun 2026', status: 'upcoming' },
-        { label: 'PVT',       date: 'Sep 2026', status: 'upcoming' },
-      ],
-      sw: [
-        { label: 'FW Bring-up', date: 'Mar 28',   status: 'upcoming' },
-        { label: 'FW Alpha',    date: 'Jul 2026', status: 'upcoming' },
-      ]
-    },
-    modalDecisions: [
-      {
-        label: 'Antenna placement strategy',
-        owner: 'S. Kim',
-        date: 'Mar 25',
-        options: [
-          'Internal flex antenna: cleaner design, more integration risk',
-          'External stub antenna: proven performance, aesthetic tradeoff'
-        ]
-      }
-    ],
-    modalRisks: []
-  },
-  {
-    id: 'x2c',
-    name: 'X2c',
-    subtitle: 'Accessories',
-    phase: 'In Design',
-    status: 'watch',
     lastGate: null,
-    nextGate: null,
+    nextGate: {
+      label: 'Concept Review',
+      date: '2026-03-15',
+      criteria: ['Cleanspark/Submer walkthrough complete', 'Hardware validation planning done', 'F1 hashboard Ok2Fab on track']
+    },
     risks: [],
     decisions: [],
     programSchedule: {
       hw: [
-        { label: 'Concept',  date: 'Mar 2026', status: 'current'  },
-        { label: 'EVT',      date: 'Sep 2026', status: 'upcoming' },
+        { label: 'Cleanspark Visit', date: 'Mar 10', status: 'upcoming' },
+        { label: 'Concept Review',   date: 'Mar 15', status: 'upcoming' },
+        { label: 'F1 Ok2Fab',        date: 'Mar 18', status: 'upcoming' },
+        { label: 'Proto1a',          date: 'Mar 31', status: 'upcoming' },
+        { label: 'Proto1b',          date: 'Apr 21', status: 'upcoming' },
+      ],
+      sw: []
+    },
+    modalDecisions: [],
+    modalRisks: []
+  },
+  {
+    id: 'k1',
+    name: 'K1',
+    subtitle: 'Square Kiosk',
+    phase: 'Proto',
+    status: 'watch',
+    lastGate: { label: 'Proto Start', date: '2026-02-03' },
+    nextGate: {
+      label: 'OK2Fab',
+      date: '2026-03-13',
+      criteria: ['PCB release finalized', 'Alpha unit inputs secured', 'SW scope confirmed']
+    },
+    risks: [
+      { label: 'PCB release timing risk', owner: '[NEED UPDATE]' },
+      { label: 'SW timeline resourcing', owner: '[NEED UPDATE]' }
+    ],
+    decisions: [
+      { label: 'SW scope for Alpha', owner: '[NEED UPDATE]', date: 'TBD' }
+    ],
+    programSchedule: {
+      hw: [
+        { label: 'Proto Start', date: 'Feb 3',  status: 'complete' },
+        { label: 'OK2Fab',      date: 'Mar 13', status: 'upcoming' },
+        { label: 'Proto DMR',   date: 'Mar 31', status: 'upcoming' },
+        { label: 'EVT PCB',     date: 'Apr 1',  status: 'upcoming' },
+        { label: 'PRV1',        date: 'Apr 13', status: 'upcoming' },
+        { label: 'EVT',         date: 'May 6',  status: 'upcoming' },
       ],
       sw: [
-        { label: 'FW Spec',  date: 'Jun 2026', status: 'upcoming' },
+        { label: 'Alpha Start', date: '[NEED UPDATE]', status: 'upcoming' },
       ]
     },
     modalDecisions: [
       {
-        label: 'Accessory product scope',
-        owner: 'PM Team',
-        date: 'Apr 2026',
+        label: 'SW scope for Alpha',
+        owner: '[NEED UPDATE]',
+        date: 'TBD',
         options: [
-          'Wallet case: high demand signal, minimal EE content',
-          'Charging stand: differentiated, more complex NPI'
+          'SW timelines being reassessed ahead of Alpha start; resourcing stabilization pending'
         ]
       }
     ],
     modalRisks: [
       {
-        label: 'Scope definition pending',
-        owner: 'PM Team',
-        description: 'Product scope not yet locked; EVT planning cannot begin until concept freeze'
+        label: 'PCB release timing risk',
+        owner: '[NEED UPDATE]',
+        description: 'EVT flex designs on track but PCB release timing carries risk pending resourcing stabilization'
+      },
+      {
+        label: 'SW timeline resourcing',
+        owner: '[NEED UPDATE]',
+        description: 'SW timelines being reassessed ahead of Alpha; Ops aligning MP material planning on updated demand'
+      }
+    ]
+  },
+  {
+    id: 'x2c',
+    name: 'X2c',
+    subtitle: 'Square Register',
+    phase: 'In Prod',
+    status: 'at-risk',
+    lastGate: null,
+    nextGate: {
+      label: 'OOS Checkpoint',
+      date: '2026-03-09',
+      criteria: ['Emoney fix TMN validated', 'Production recovery on track for MPS by EOM']
+    },
+    risks: [
+      { label: 'OOS risk if Emoney fix fails validation', owner: '[NEED UPDATE]' }
+    ],
+    decisions: [
+      { label: 'X2b US/CA allocation', owner: 'SDM', date: 'Mar 9' }
+    ],
+    programSchedule: {
+      hw: [
+        { label: 'X2b Build',  date: 'Mar 2026', status: 'current'  },
+        { label: 'OK2Fab',     date: 'Mar 13',   status: 'upcoming' },
+        { label: 'PRV1',       date: 'Apr 13',   status: 'upcoming' },
+        { label: 'EVT',        date: 'May 2026', status: 'upcoming' },
+      ],
+      sw: [
+        { label: 'Emoney Fix', date: 'Mar 13', status: 'upcoming' },
+      ]
+    },
+    modalDecisions: [
+      {
+        label: 'X2b US/CA allocation',
+        owner: 'SDM',
+        date: 'Mar 9',
+        options: [
+          'X2b final build locked; SDM alignment on US/CA split pending'
+        ]
+      }
+    ],
+    modalRisks: [
+      {
+        label: 'OOS risk — Emoney fix validation',
+        owner: '[NEED UPDATE]',
+        description: 'CD delivered Emoney fix; awaiting TMN validation. Drop-dead ~Mar 13 before OOS risk materializes at CP 3/9. 3,046 units deployed, 1,797 activated.'
       }
     ]
   }
@@ -848,8 +862,12 @@ const PHASE_BADGE = {
   'DVT':       { bg: '#dbeafe', text: '#1d4ed8' },
   'EVT':       { bg: '#dcfce7', text: '#166534' },
   'In Design': { bg: '#f1f5f9', text: '#475569' },
+  'Concept':   { bg: '#f1f5f9', text: '#475569' },
+  'T1 Trials': { bg: '#fef3c7', text: '#92400e' },
+  'Proto':     { bg: '#ede9fe', text: '#5b21b6' },
   'PRV1':      { bg: '#ede9fe', text: '#5b21b6' },
-  'PVT':       { bg: '#fef3c7', text: '#92400e' }
+  'PVT':       { bg: '#fef3c7', text: '#92400e' },
+  'In Prod':   { bg: '#d1fae5', text: '#065f46' }
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
