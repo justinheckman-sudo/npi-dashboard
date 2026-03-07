@@ -982,9 +982,9 @@ function buildNavStatus() {
   PROGRAMS.forEach(p => { if (counts[p.status] !== undefined) counts[p.status]++; });
 
   const parts = [];
-  if (counts['at-risk'] > 0)  parts.push(`<span class="status-pill" style="color:${RAG['at-risk'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['at-risk']} AT RISK</span></span>`);
-  if (counts['watch'] > 0)    parts.push(`<span class="status-pill" style="color:${RAG['watch'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['watch']} WATCH</span></span>`);
-  if (counts['on-track'] > 0) parts.push(`<span class="status-pill" style="color:${RAG['on-track'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['on-track']} ON TRACK</span></span>`);
+  if (counts['at-risk'] > 0)  parts.push(`<span class="status-pill" style="color:${RAG['at-risk'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['at-risk']} ${RAG['at-risk'].label}</span></span>`);
+  if (counts['watch'] > 0)    parts.push(`<span class="status-pill" style="color:${RAG['watch'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['watch']} ${RAG['watch'].label}</span></span>`);
+  if (counts['on-track'] > 0) parts.push(`<span class="status-pill" style="color:${RAG['on-track'].navDot}"><span>&#9679;</span><span style="color:#94a3b8">${counts['on-track']} ${RAG['on-track'].label}</span></span>`);
 
   document.getElementById('status-summary').innerHTML = parts.join('<span style="color:#334155;font-size:10px">·</span>');
 
